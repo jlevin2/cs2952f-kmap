@@ -1,0 +1,13 @@
+FROM envoyproxy/envoy-dev:latest
+
+RUN apt update && apt install -y python3 bash gcc python3-pip gdb vim
+RUN pip3 install -q Flask==0.11.1 requests==2.18.4
+RUN mkdir /code
+ADD service.py /code
+ADD start_service.sh /usr/local/bin/start_service.sh
+RUN chmod u+x /usr/local/bin/start_service.sh
+
+ADD library.c /code
+RUN gcc -shared -fPIC -o /code/library.so /code/library.c
+
+# ENTRYPOINT /usr/local/bin/start_service.sh
