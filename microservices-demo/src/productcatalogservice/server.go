@@ -74,20 +74,8 @@ func init() {
 }
 
 func main() {
-	if os.Getenv("DISABLE_TRACING") == "" {
-		log.Info("Tracing enabled.")
-		go initTracing()
-	} else {
-		log.Info("Tracing disabled.")
-	}
-
-	if os.Getenv("DISABLE_PROFILER") == "" {
-		log.Info("Profiling enabled.")
-		go initProfiling("productcatalogservice", "1.0.0")
-	} else {
-		log.Info("Profiling disabled.")
-	}
-
+	go initTracing()
+	go initProfiling("productcatalogservice", "1.0.0")
 	flag.Parse()
 
 	// set injected latency
@@ -131,17 +119,8 @@ func run(port string) string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	var srv *grpc.Server
-	if os.Getenv("DISABLE_STATS") == "" {
-		log.Info("Stats enabled.")
-		srv = grpc.NewServer(grpc.StatsHandler(&ocgrpc.ServerHandler{}))
-	} else {
-		log.Info("Stats disabled.")
-		srv = grpc.NewServer()
-	}
-
+	srv := grpc.NewServer(grpc.StatsHandler(&ocgrpc.ServerHandler{}))
 	svc := &productCatalog{}
-
 	pb.RegisterProductCatalogServiceServer(srv, svc)
 	healthpb.RegisterHealthServer(srv, svc)
 	go srv.Serve(l)

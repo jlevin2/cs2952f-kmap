@@ -1,22 +1,27 @@
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3
 kind: Mapping
 metadata: 
-  name: productpage
+  name: cartmapping
 spec:     
-  prefix: /productpage/
-  rewrite: /productpage
-  service: productpage:9080
+  prefix: /cart/
+  rewrite: /cart
+  service: cartservice:7070
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: productpage
-  labels:
-    app: productpage
-spec:
-  ports:
-  - port: 9080
-    name: http
-  selector:
-    app: productpage
+apiVersion: getambassador.io/v3
+kind: Mapping
+metadata: 
+  name: admapping
+spec:     
+  prefix: /ad/
+  rewrite: /ad
+  service: adservice:9555
+---
+apiVersion: getambassador.io/v3
+kind: Mapping
+metadata: 
+  name: reccomendationmapping
+spec:     
+  prefix: /reccomendation/
+  rewrite: /reccomendation
+  service: recommendationservice:8080

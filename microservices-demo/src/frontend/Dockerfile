@@ -17,7 +17,7 @@ RUN apk add --no-cache ca-certificates \
     busybox-extras net-tools bind-tools
 WORKDIR /frontend
 COPY --from=builder /go/bin/frontend /frontend/server
-COPY ./templates ./templates
-COPY ./static ./static
+COPY templates ./templates
+COPY static ./static
 EXPOSE 8080
 ENTRYPOINT ["/frontend/server"]

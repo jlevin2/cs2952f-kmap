@@ -49,6 +49,12 @@ deploy:
     manifests:
     - ./kubernetes-manifests/**.yaml
 profiles:
+# "travis-ci" profile is used to build the images without
+# pushing them.
+- name: travis-ci
+  build:
+    local:
+      push: false
 # "gcb" profile allows building and pushing the images
 # on Google Container Builder without requiring docker
 # installed on the developer machine. However, note that
