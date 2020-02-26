@@ -1,0 +1,22 @@
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata: 
+  name: productpage
+spec:     
+  prefix: /productpage/
+  rewrite: /productpage
+  service: productpage:9080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: productpage
+  labels:
+    app: productpage
+spec:
+  ports:
+  - port: 9080
+    name: http
+  selector:
+    app: productpage
