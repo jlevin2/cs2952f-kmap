@@ -1,27 +1,58 @@
 ---
-apiVersion: getambassador.io/v3
-kind: Mapping
-metadata: 
-  name: cartmapping
-spec:     
-  prefix: /cart/
-  rewrite: /cart
-  service: cartservice:7070
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+  ports:
+   - port: 80
+     targetPort: 8080
+  selector:
+    service: ambassador
+# ---
+# apiVersion: getambassador.io/v2
+# kind: Mapping
+# metadata: 
+#   name: cartmapping
+# spec:     
+#   prefix: /cart
+#   rewrite: /cart
+#   service: cartservice:7070
 ---
-apiVersion: getambassador.io/v3
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata: 
-  name: admapping
+  name: frontend
 spec:     
-  prefix: /ad/
-  rewrite: /ad
-  service: adservice:9555
----
-apiVersion: getambassador.io/v3
-kind: Mapping
-metadata: 
-  name: reccomendationmapping
-spec:     
-  prefix: /reccomendation/
-  rewrite: /reccomendation
-  service: recommendationservice:8080
+  prefix: /
+  rewrite: /
+  service: frontend:80
+# ---
+# apiVersion: getambassador.io/v2
+# kind: Mapping
+# metadata: 
+#   name: product
+# spec:     
+#   prefix: /product/
+#   rewrite: /product/
+#   service: productcatalogservice:3550
+# ---
+# apiVersion: getambassador.io/v2
+# kind: Mapping
+# metadata: 
+#   name: admapping
+# spec:     
+#   prefix: /ad/
+#   rewrite: /ad
+#   service: adservice:9555
+# ---
+# apiVersion: getambassador.io/v2
+# kind: Mapping
+# metadata: 
+#   name: reccomendationmapping
+# spec:     
+#   prefix: /reccomendation/
+#   rewrite: /reccomendation
+#   service: recommendationservice:8080
