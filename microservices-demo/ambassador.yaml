@@ -29,15 +29,15 @@ spec:
   prefix: /
   rewrite: /
   service: frontend:80
-# ---
-# apiVersion: getambassador.io/v2
-# kind: Mapping
-# metadata: 
-#   name: product
-# spec:     
-#   prefix: /product/
-#   rewrite: /product/
-#   service: productcatalogservice:3550
+#---
+#apiVersion: getambassador.io/v2
+#kind: Mapping
+#metadata:
+#  name: product
+#spec:
+#  prefix: /product/
+#  # rewrite: /product/
+#  service: productcatalogservice:3550
 # ---
 # apiVersion: getambassador.io/v2
 # kind: Mapping
