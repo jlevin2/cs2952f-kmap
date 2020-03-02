@@ -1,0 +1,9 @@
+# everything else seems to be optional?
+apiVersion: getambassador.io/v2
+kind: Filter
+metadata:
+  name: filter
+spec:
+  JWT:
+    # TODO: Should this be updated?
+    jwksURI: "https://getambassador-demo.auth0.com/.well-known/jwks.json"
