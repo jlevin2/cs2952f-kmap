@@ -1,7 +1,7 @@
 # this has the latest dev version of envoy in /usr/local/bin
 FROM envoyproxy/envoy-dev:latest
 
-RUN apt update && apt install -y python3 bash gcc python3-pip gdb vim tmux htop
+RUN apt update && apt install -y python3 bash gcc python3-pip gdb vim tmux htop net-tools curl
 RUN pip3 install -q Flask==0.11.1 requests==2.18.4
 RUN mkdir /code
 ADD service.py /code
@@ -12,6 +12,9 @@ ADD service-envoy.yaml /etc/service-envoy.yaml
 
 ADD library.c /code
 RUN gcc -shared -fPIC -g -o /code/library.so /code/library.c
+
+# Envoy admin page
+EXPOSE 8081
 
 ENTRYPOINT ["/bin/bash"]
 
