@@ -18,6 +18,7 @@ services:
       - "8001:8001"
 
   service_blue:
+    privileged: true
     build:
       context: ../apps
       dockerfile: Dockerfile-service
@@ -32,6 +33,7 @@ services:
     expose:
       - "80"
   service_green:
+    privileged: true
     build:
       context: ../apps
       dockerfile: Dockerfile-service
@@ -46,6 +48,7 @@ services:
     expose:
       - "80"
   service_red:
+    privileged: true
     build:
       context: ../apps
       dockerfile: Dockerfile-service
