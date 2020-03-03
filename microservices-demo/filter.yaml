@@ -1,9 +1,23 @@
-# everything else seems to be optional?
+---
 apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
-  name: filter
+  name: "jwt-filter"
+  namespace: default
 spec:
   JWT:
-    # TODO: Should this be updated?
     jwksURI: "https://getambassador-demo.auth0.com/.well-known/jwks.json"
+    validAlgorithms:
+      - "none"
+---
+apiVersion: getambassador.io/v2
+kind: FilterPolicy
+metadata:
+  name: "example-filter-policy"
+  namespace: default
+spec:
+  rules:
+  - host: "*"
+    path: /*
+    filters:
+    - name: jwt-filter
