@@ -21,6 +21,9 @@ TRACE_HEADERS_TO_PROPAGATE = [
     # Jaeger header (for native client)
     "uber-trace-id"
 ]
+@app.route('/')
+def hello_world():
+    return 'Hello, World!'
 
 def render_page():
     return ('<body bgcolor="{}"><span style="color:white;font-size:4em;">\n'

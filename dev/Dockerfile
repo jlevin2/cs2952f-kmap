@@ -12,7 +12,7 @@ FROM envoyproxy/envoy-dev:latest
 # RUN rm /usr/bin/g++
 # RUN ln -s /usr/bin/g++-9 /usr/bin/g++
 
-RUN apt update && apt install -y python3 bash gcc python3-pip gdb vim tmux htop net-tools curl gawk
+RUN apt update && apt install -y python3 bash gcc python3-pip gdb vim tmux htop net-tools curl gawk netcat lsof man
 RUN pip3 install -q Flask==0.11.1 requests==2.18.4
 RUN mkdir /code
 ADD service.py /code
@@ -21,12 +21,12 @@ RUN chmod u+x /usr/local/bin/start_static_service.sh
 
 ADD service-envoy.yaml /etc/service-envoy.yaml
 
-ADD library.c /code
+# ADD library.c /code
 # ADD test.c /code
 # ADD glibc /code/
 
 #RUN gcc -shared -fPIC -g -o /code/library.so /code/library.c
-RUN gcc -shared -fPIC /code/library.c  -o /code/library.so -ldl
+# RUN gcc -shared -fPIC /code/library.c  -o /code/library.so -ldl
 
 # Envoy admin page
 EXPOSE 8081
