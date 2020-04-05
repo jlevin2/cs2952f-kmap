@@ -9,12 +9,13 @@ CFLAGS  = -g -Wall -shared -fPIC
 
 # the build target executable:
 TARGET = library
+FIFO = fifo
 #SOURCE = library
 
 all: run
 
 $(TARGET): $(TARGET).c
-	$(CC) $(CFLAGS) $(TARGET).c -o $(TARGET).so -ldl
+	$(CC) $(CFLAGS) $(TARGET).c $(FIFO).c -o $(TARGET).so -ldl
 
 run: $(TARGET)
 	/usr/local/bin/start_static_service.sh

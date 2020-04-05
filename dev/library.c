@@ -1,13 +1,11 @@
 #define _GNU_SOURCE
 
-#include <stdio.h>
-#include <dlfcn.h>
-#include <unistd.h>
-#include <sys/syscall.h>
-//#include <sys/socket.h>
-//#include <netinet/in.h>
+#include "fifo.h"
+
 #include <arpa/inet.h>
 #include <string.h>
+#include <dlfcn.h>
+
 
 typedef int (*socket_t)(int domain, int type, int protocol);
 
@@ -93,6 +91,9 @@ ssize_t write(int fd, const void *buf, size_t count) {
     if (!real_write) {
         real_write = dlsym(RTLD_NEXT, "write");
     }
+
+    // TODO: Once we figure out the fd, just call fifo_write().
+
 //    if (target_socket != 0 && fd == target_socket) {
 //        fprintf(stderr, "Write on socket%d, contents=(%s)", fd, buf);
 //    }
@@ -100,7 +101,7 @@ ssize_t write(int fd, const void *buf, size_t count) {
 //        fprintf(stderr, "Target socket write!\n");
 //    }
     if (fd == cur_accepted_socket && count > 0) {
-        fprintf(stderr, "Write on socket=%d,len=%d, contents=%s\n", fd,count, ((char *)buf));
+        fprintf(stderr, "Write on socket=%d,len=%zu, contents=%s\n", fd,count, ((char *)buf));
 //        for (int i = 0; i < count; i++) {
 //            fprintf(stderr, "Char %d = %c\n", i,  ((char *)buf)[i]);
 //        }
@@ -116,12 +117,14 @@ ssize_t read(int fd, void *buf, size_t count) {
     if (!real_read) {
         real_read = dlsym(RTLD_NEXT, "read");
     }
+
+    // TODO: Once we figure out the fd, just call fifo_read().
 //    if (target_socket != 0 && fd == target_socket) {
 //        fprintf(stderr, "Write on socket%d, contents=(%s)", fd, buf);
 //    }
     ssize_t res = real_read(fd,buf,count);
     if (fd == cur_accepted_socket && res > 0) {
-        fprintf(stderr, "Read on socket=%d,len=%d, contents=%s\n", fd,  res, ((char *)buf));
+        fprintf(stderr, "Read on socket=%d,len=%zd, contents=%s\n", fd,  res, ((char *)buf));
 //        for (int i = 0; i < res; i++) {
 //            fprintf(stderr, "Char %d = %c\n", i,  ((char *)buf)[i]);
 //        }
@@ -135,40 +138,8 @@ ssize_t read(int fd, void *buf, size_t count) {
 
 // Pretty sure this is unnecessary
 __attribute__((constructor)) static void setup(void) {
+    fifo_setup(); // set up the fifo
     fprintf(stderr, "called setup()\n");
 }
 
 
-// socket creation and binding API
-// Socket creation -- don't really need to worry about it.
-//int bind(int socket, const struct sockaddr *address, socklen_t address_len) {
-//    int ret = syscall(SYS_bind, socket, address, address_len);
-//
-//    struct sockaddr_in my_addr;
-//
-//    memset(&my_addr, 0, sizeof(my_addr));
-//    int len = sizeof(my_addr);
-//    getsockname(socket, (struct sockaddr *) &my_addr, &len);
-//    int myPort = ntohs(my_addr.sin_port);
-//    printf("Local port : %u\n", myPort);
-//
-//    if (myPort == 8080) {
-//        seg();
-//    }
-//
-//    return ret;
-//    return syscall(SYS_bind, socket, address, address_len);
-//}
-//
-//ssize_t read(int fd, void *buf, size_t num) {
-//    if (fd != special_fd)
-//        return syscall(SYS_read, fd, buf, num);
-//}
-//
-//ssize_t write(int fd, const void *buf, size_t num) {
-//    if (fd != special_fd)
-//        return syscall(SYS_write, fd, buf, num);
-//}
-//
-//
-//
