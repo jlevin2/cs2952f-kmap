@@ -12,7 +12,7 @@ FROM envoyproxy/envoy-dev:latest
 # RUN rm /usr/bin/g++
 # RUN ln -s /usr/bin/g++-9 /usr/bin/g++
 
-RUN apt update && apt install -y python3 bash gcc python3-pip gdb vim tmux htop net-tools curl gawk netcat lsof man
+RUN apt update && apt install -y python3 bash gcc python3-pip gdb vim tmux htop net-tools curl gawk netcat lsof man iptables
 RUN pip3 install -q Flask==0.11.1 requests==2.18.4
 RUN mkdir /code
 ADD service.py /code
