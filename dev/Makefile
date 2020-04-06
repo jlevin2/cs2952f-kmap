@@ -18,7 +18,7 @@ $(TARGET): $(TARGET).c
 	$(CC) $(CFLAGS) $(TARGET).c $(FIFO).c -o $(TARGET).so -ldl
 
 run: $(TARGET)
-	/usr/local/bin/start_static_service.sh
+	./start_static_service.sh
 
 clean:
 	$(RM) $(TARGET).so
