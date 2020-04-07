@@ -3,6 +3,7 @@
 #include "fifo.h"
 
 #include <arpa/inet.h>
+#include <stdlib.h>
 #include <string.h>
 #include <dlfcn.h>
 #include <netinet/ip.h>
@@ -217,13 +218,19 @@ typedef int (*writev_t)(int fildes, const struct iovec *iov, int iovcnt);
 writev_t real_writev;
 
 ssize_t writev(int fildes, const struct iovec *iov, int iovcnt) {
+    ssize_t resp;
+
     if (!real_writev) {
         real_writev = dlsym(RTLD_NEXT, "writev");
     }
     if (fildes == target_socket) {
         fprintf(stderr, "WRITEV on target FD=%d\n", fildes);
+        resp = fifo_writev(fildes, iov, iovcnt, real_writev);
+//        resp = real_writev(fildes, iov, iovcnt);
+        fprintf(stderr, "WRITEV returned %d\n", resp);
+    } else {
+        resp = real_writev(fildes, iov, iovcnt);
     }
-    ssize_t resp = real_writev(fildes, iov, iovcnt);
     return resp;
 }
 
@@ -232,23 +239,26 @@ typedef int (*readv_t)(int fd, const struct iovec *iov, int iovcnt);
 readv_t real_readv;
 
 ssize_t readv(int fd, const struct iovec *iov, int iovcnt) {
+    ssize_t resp;
     if (!real_readv) {
         real_readv = dlsym(RTLD_NEXT, "readv");
     }
     if (fd == target_socket) {
         fprintf(stderr, "READV on target FD=%d\n", fd);
+        resp = fifo_readv(fd, iov, iovcnt, real_readv);
+//        resp = real_readv(fd,iov,iovcnt);
+        fprintf(stderr, "READV returned %d\n", resp);
+    } else {
+        resp = real_readv(fd, iov, iovcnt);
     }
-    ssize_t resp = real_readv(fd, iov, iovcnt);
     return resp;
 }
 
-
-
-
 // Pretty sure this is unnecessary
-//__attribute__((constructor)) static void setup(void) {
-//    fifo_setup(); // set up the fifo
-//    fprintf(stderr, "called setup()\n");
-//}
+__attribute__((constructor)) static void setup(void) {
+    int ret = fifo_setup(); // set up the fifo
+    fprintf(stderr, "%s: called setup()\n", getenv("PATH1"));
+    fprintf(stderr, "\n\n%s; %d\n\n", myfifo, ret);
+}
 
 
