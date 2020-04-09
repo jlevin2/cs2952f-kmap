@@ -19,15 +19,6 @@ The two critical challenges to realizing \sysname are:
 \begin{figure}[!htb]
     \begin{minipage}{0.5\textwidth}
         \centering
-        \includegraphics[keepaspectratio=true,width=3in]{figures/design/no_kmap.png}
-        \caption{No Kmap Envoy Network Stack}
-        \label{fig:no_kmap}
-    \end{minipage}%
-\end{figure}
-
-\begin{figure}[!htb]
-    \begin{minipage}{0.5\textwidth}
-        \centering
         \includegraphics[keepaspectratio=true,width=3in]{figures/design/kmap.png}
         \caption{Kmap}
         \label{fig:kmap}
@@ -41,13 +32,24 @@ The two critical challenges to realizing \sysname are:
 \subsection{Pipe options}
 Here, we outline potential methods for implementing the buffer \sysname uses to pass data between Envoy and the microservice.
 
-\textbf{Named Pipes:}
 
+\textbf{Named Pipes:}
+Named pipes, (FIFO) are blocking, uni-directional I/O buffers for passing data between two processes.
+The pipe must be opened for both reading and writing before being written two.
+Named pipes are traditionally slow, only offering slight speed advantages over TCP.
+Further, they are un-directional which makes them less accessible or interchangeable compared to TCP.
 
 \textbf{Unnamed Pipes:}
-
+Unnamed pipes are slightly faster than Named pipes, but are created per-process.
+They traditionally are used when a process forks, as they both will share a reference to the pipe.
+This makes them particularly tricky to implement across two independent processes and thus unhelpful for \sysname.
 
 \textbf{Shared Memory:}
+Shared memory is a robust API which allows processes to share use of a memory region (\textit{schm\_open}).
+This requires mapping the same underlying memory region into the virtual memory of each process (\textit{mmap}).
+Shared memory is concretely faster than pipes and the primary API \sysname uses for communicating information.
+Shared memory has been benchmarked to be 170 times faster than TCP sockets for communicating information between processes.
+However, shared memory does not directly provide a buffer interface like TCP, ans so \sysname must implement that as part of its library.
 
 
 \subsection{When to apply \sysname}

@@ -1,7 +1,11 @@
 \begin{thebibliography}{1}
 
-\bibitem{sagas}
-{\sc McCaffrey, C.}
-\newblock Distributed sagas: A protocol for coordinating microservices.
+\bibitem{envoy}
+Envoy proxy - home.
+\newblock \url{https://www.envoyproxy.io/}.
+
+\bibitem{istio}
+Istio.
+\newblock \url{https://istio.io/}.
 
 \end{thebibliography}

@@ -3,47 +3,47 @@ Capacity: max_strings=100000, hash_size=100000, hash_prime=85009
 The top-level auxiliary file: paper.aux
 The style file: acm.bst
 Database file #1: paper.bib
-Warning--entry type for "sagas" isn't style-file defined
---line 7 of file paper.bib
-You've used 1 entry,
+Warning--to sort, need author or key in envoy
+Warning--to sort, need author or key in istio
+You've used 2 entries,
             2253 wiz_defined-function locations,
-            530 strings with 3957 characters,
-and the built_in function-call counts, 219 in all, are:
-= -- 16
-> -- 7
+            532 strings with 3957 characters,
+and the built_in function-call counts, 334 in all, are:
+= -- 28
+> -- 2
 < -- 0
-+ -- 3
-- -- 2
-* -- 9
-:= -- 40
-add.period$ -- 2
-call.type$ -- 1
-change.case$ -- 4
++ -- 2
+- -- 0
+* -- 12
+:= -- 41
+add.period$ -- 4
+call.type$ -- 2
+change.case$ -- 6
 chr.to.int$ -- 0
-cite$ -- 1
-duplicate$ -- 8
-empty$ -- 24
-format.name$ -- 2
-if$ -- 44
+cite$ -- 4
+duplicate$ -- 14
+empty$ -- 47
+format.name$ -- 0
+if$ -- 79
 int.to.chr$ -- 0
-int.to.str$ -- 1
+int.to.str$ -- 2
 missing$ -- 0
-newline$ -- 7
-num.names$ -- 2
-pop$ -- 8
+newline$ -- 11
+num.names$ -- 0
+pop$ -- 22
 preamble$ -- 1
-purify$ -- 3
+purify$ -- 4
 quote$ -- 0
-skip$ -- 10
+skip$ -- 12
 stack$ -- 0
-substring$ -- 5
+substring$ -- 10
 swap$ -- 2
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 4
-warning$ -- 0
-while$ -- 2
-width$ -- 2
-write$ -- 9
-(There was 1 warning)
+type$ -- 8
+warning$ -- 2
+while$ -- 0
+width$ -- 3
+write$ -- 16
+(There were 2 warnings)
