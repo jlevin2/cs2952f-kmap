@@ -1,6 +1,7 @@
 #define _GNU_SOURCE
 
-#include "fifo.h"
+//#include "fifo.h"
+#include "buffer.h"
 
 #include <arpa/inet.h>
 #include <stdlib.h>
@@ -10,40 +11,24 @@
 #include <netinet/in.h>
 #include <sys/uio.h>
 
-typedef int (*socket_t)(int domain, int type, int protocol);
+/*
+ * On Envoy side, look for connect to localhost, designated port
+ *
+ * On Microservice side, look for accept on designated port
+ *
+ */
 
-typedef int (*bind_t)(int sockfd, const struct sockaddr *addr,
-         socklen_t addrlen);
-
-socket_t real_socket;
-bind_t real_bind;
-
-int target_socket = 0;
-int cur_accepted_socket = 0;
+// UNIVERSAL
+int inbound_socket = 0;
+int connection_socket = 0;
 
 #define PORT 8080
 
-// Helper to load the real library mapping for use
-// Segfaults as of now?
-static inline void loadReal(void *pointer, char *func) {
-    if (!pointer) {
-        pointer = dlsym(RTLD_NEXT, func);
-    }
-}
-
-int socket(int domain, int type, int protocol) {
-//    loadReal(real_socket, "socket");
-    if (!real_socket) {
-        real_socket = dlsym(RTLD_NEXT, "socket");
-    }
-    int ret = real_socket(domain, type, protocol);
-    fprintf(stderr, "called socket (%d, %d, %d) giving back %d \n", domain, type, protocol, ret);
-
-    return ret;
-}
-
+#ifdef SERVICE
+typedef int (*bind_t)(int sockfd, const struct sockaddr *addr,
+         socklen_t addrlen);
+bind_t real_bind;
 int bind(int socket, const struct sockaddr *address, socklen_t address_len) {
-    fprintf(stderr, "called bind socket=%d\n", socket);
     if (!real_bind) {
         real_bind = dlsym(RTLD_NEXT, "bind");
     }
@@ -57,137 +42,48 @@ int bind(int socket, const struct sockaddr *address, socklen_t address_len) {
     // if bind isn't called yet then it returns null
     getsockname(socket, (struct sockaddr *) &my_addr, &len);
     int myPort = ntohs(my_addr.sin_port);
-    fprintf(stderr, "Local port : %d\n", myPort);
+    fprintf(stderr, "Bind called on local port : %d\n", myPort);
     if (myPort == PORT) {
-        fprintf(stderr, "Storing socket=%d with port=%d\n", socket, myPort);
-        target_socket = socket;
+        fprintf(stderr, "Storing socket=%d binded to port=%d\n", socket, myPort);
+        inbound_socket = socket;
     }
 
     return bindFD;
 }
 
-typedef int (*listen_t)(int socket, int backlog);
+// Doesn't matter if listening, just care about accept
 
-
-listen_t real_listen;
-
-int listen(int socket, int backlog) {
-    if (!real_listen) {
-        real_listen = dlsym(RTLD_NEXT, "listen");
-    }
-    fprintf(stderr, "Listen on socket %d\n", socket);
-
-    return real_listen(socket, backlog);
-}
-
-//typedef int (*accept_t)(int socket, struct sockaddr *address, socklen_t *address_len);
-//
-//
-//accept_t real_accept;
-//
-//int accept(int socket, struct sockaddr *address, socklen_t *address_len) {
-//    if (!real_accept) {
-//        real_accept = dlsym(RTLD_NEXT, "accept");
+//typedef int (*listen_t)(int socket, int backlog);
+//listen_t real_listen;
+//int listen(int socket, int backlog) {
+//    if (!real_listen) {
+//        real_listen = dlsym(RTLD_NEXT, "listen");
 //    }
-//    fprintf(stderr, "Accept on socket %d\n", socket);
-//    int returnFD = real_accept(socket, address, address_len);
-//    if (socket == target_socket) {
-//        fprintf(stderr, "Target socket accepted new connection on %d!\n", returnFD);
-//        cur_accepted_socket = returnFD;
-//    }
-//    return returnFD;
+//    fprintf(stderr, "Listen on socket %d\n", socket);
+//
+//    return real_listen(socket, backlog);
 //}
 
-typedef ssize_t (*write_t)(int fd, const void *buf, size_t count);
-
-write_t real_write;
-
-ssize_t write(int fd, const void *buf, size_t count) {
-    if (!real_write) {
-        real_write = dlsym(RTLD_NEXT, "write");
+typedef int (*accept_t)(int socket, struct sockaddr *address, socklen_t *address_len);
+accept_t real_accept;
+int accept(int socket, struct sockaddr *address, socklen_t *address_len) {
+    if (!real_accept) {
+        real_accept = dlsym(RTLD_NEXT, "accept");
     }
-
-    // TODO: Once we figure out the fd, just call fifo_write().
-
-//    if (target_socket != 0 && fd == target_socket) {
-//        fprintf(stderr, "Write on socket%d, contents=(%s)", fd, buf);
-//    }
-//    if (fd == target_socket) {
-//        fprintf(stderr, "Target socket write!\n");
-//    }
-//    fprintf(stderr, "Write on socket=%d,len=%zu, contents=%s\n", fd,count, ((char *)buf));
-    if (fd == cur_accepted_socket && count > 0) {
-        fprintf(stderr, "Write on TARGETSOCKET=%d,len=%zu, contents=%s\n", fd,count, ((char *)buf));
-//        for (int i = 0; i < count; i++) {
-//            fprintf(stderr, "Char %d = %c\n", i,  ((char *)buf)[i]);
-//        }
+    fprintf(stderr, "Accept on socket %d\n", socket);
+    int returnFD = real_accept(socket, address, address_len);
+    if (socket == inbound_socket) {
+        fprintf(stderr, "Connection socket set to %d!\n", returnFD);
+        connection_socket = returnFD;
     }
-    return real_write(fd,buf,count);
+    return returnFD;
 }
+#endif
 
-typedef ssize_t (*read_t)(int fd, void *buf, size_t count);
-
-read_t real_read;
-
-ssize_t read(int fd, void *buf, size_t count) {
-    if (!real_read) {
-        real_read = dlsym(RTLD_NEXT, "read");
-    }
-
-    // TODO: Once we figure out the fd, just call fifo_read().
-//    if (target_socket != 0 && fd == target_socket) {
-//        fprintf(stderr, "Write on socket%d, contents=(%s)", fd, buf);
-//    }
-    ssize_t res = real_read(fd,buf,count);
-//    fprintf(stderr, "READ on socket=%d,len=%zu, contents=%s\n", fd,count, ((char *)buf));
-    if (fd == cur_accepted_socket && res > 0) {
-        fprintf(stderr, "Read on TARGETSOCKET=%d,len=%zd, contents=%s\n", fd,  res, ((char *)buf));
-//        for (int i = 0; i < res; i++) {
-//            fprintf(stderr, "Char %d = %c\n", i,  ((char *)buf)[i]);
-//        }
-    }
-//    if (fd == target_socket) {
-//        fprintf(stderr, "Target socket read!\n");
-//    }
-    return res;
-}
-
-
-typedef int (*setsockopt_t)(int socket, int level, int option_name,
-                            const void *option_value, socklen_t option_len);
-setsockopt_t real_setsockopt;
-
-int setsockopt(int socket, int level, int option_name,
-               const void *option_value, socklen_t option_len) {
-    if (!real_setsockopt) {
-        real_setsockopt = dlsym(RTLD_NEXT, "setsockopt");
-    }
-//    loadReal(real_setsockopt, "setsockopt");
-    int resp = real_setsockopt(socket, level, option_name, option_value, option_len);
-    fprintf(stderr, "SETSOCKOPT socket=%d level=%d option_name=%d "
-                    "option_value=%s option_len=%zd resp=(%d)\n", socket,
-                    level, option_name, option_value, option_len, resp);
-    return resp;
-}
-
-typedef int (*socketpair_t)(int domain, int type, int protocol, int sv[2]);
-socketpair_t real_socketpair;
-
-int socketpair(int domain, int type, int protocol, int sv[2]) {
-    if (!real_socketpair) {
-        real_socketpair = dlsym(RTLD_NEXT, "socketpair");
-    }
-//    loadReal(real_socketpair, "socketpair");
-    int resp = real_socketpair(domain, type, protocol, sv);
-    fprintf(stderr, "SOCKETPAIR domain=%d type=%d protocol=%d "
-                    "resp=(%d)\n", domain, type, protocol, resp);
-    return resp;
-}
-
+#ifdef ENVOY
 typedef int (*connect_t)(int sockfd, const struct sockaddr *addr,
-                                socklen_t addrlen);
+                         socklen_t addrlen);
 connect_t real_connect;
-
 int connect(int sockfd, const struct sockaddr *addr,
             socklen_t addrlen) {
     // Helper to load the real library mapping for use
@@ -206,26 +102,64 @@ int connect(int sockfd, const struct sockaddr *addr,
         perror("Connect returned error code:");
     }
     if (myPort == PORT) {
-        fprintf(stderr, "CONNECT setting target FD=%d\n", sockfd);
-        target_socket = sockfd;
+        fprintf(stderr, "CONNECT on target port, connection FD=%d\n", sockfd);
+        connection_socket = sockfd;
     }
 
     return resp;
 }
+#endif
+
+// General function wrappers around read/write
+typedef ssize_t (*write_t)(int fd, const void *buf, size_t count);
+write_t real_write;
+ssize_t write(int fd, const void *buf, size_t count) {
+    if (!real_write) {
+        real_write = dlsym(RTLD_NEXT, "write");
+    }
+
+    // TODO: Once we figure out the fd, just call fifo_write().
+    ssize_t res = 0;
+    if (fd == connection_socket && count > 0) {
+        fprintf(stderr, "Write on connection=%d,len=%zd, contents=%s\n", fd,  count, ((char *)buf));
+        res = buffer_write(buf, count);
+    } else {
+        res = real_write(fd, buf, count);
+    }
+    return res;
+}
+
+typedef ssize_t (*read_t)(int fd, void *buf, size_t count);
+
+read_t real_read;
+
+ssize_t read(int fd, void *buf, size_t count) {
+    if (!real_read) {
+        real_read = dlsym(RTLD_NEXT, "read");
+    }
+    // TODO: Once we figure out the fd, just call fifo_read().
+    ssize_t res = 0;
+//    ssize_t res = real_read(fd,buf,count);
+    if (fd == connection_socket && res > 0) {
+        fprintf(stderr, "Read on connection=%d,len=%zd, contents=%s\n", fd,  res, ((char *)buf));
+        res = buffer_read(buf, count);
+    } else {
+        res = real_read(fd, buf, count);
+    }
+    return res;
+}
 
 typedef int (*writev_t)(int fildes, const struct iovec *iov, int iovcnt);
-
 writev_t real_writev;
-
 ssize_t writev(int fildes, const struct iovec *iov, int iovcnt) {
     ssize_t resp;
 
     if (!real_writev) {
         real_writev = dlsym(RTLD_NEXT, "writev");
     }
-    if (fildes == target_socket) {
-        fprintf(stderr, "WRITEV on target FD=%d\n", fildes);
-        resp = fifo_writev(fildes, iov, iovcnt, real_writev);
+    if (fildes == connection_socket) {
+        fprintf(stderr, "WRITEV on connection FD=%d\n", fildes);
+        resp = buffer_writev(iov, iovcnt);
 //        resp = real_writev(fildes, iov, iovcnt);
         fprintf(stderr, "WRITEV returned %d\n", resp);
     } else {
@@ -235,17 +169,15 @@ ssize_t writev(int fildes, const struct iovec *iov, int iovcnt) {
 }
 
 typedef int (*readv_t)(int fd, const struct iovec *iov, int iovcnt);
-
 readv_t real_readv;
-
 ssize_t readv(int fd, const struct iovec *iov, int iovcnt) {
     ssize_t resp;
     if (!real_readv) {
         real_readv = dlsym(RTLD_NEXT, "readv");
     }
-    if (fd == target_socket) {
-        fprintf(stderr, "READV on target FD=%d\n", fd);
-        resp = fifo_readv(fd, iov, iovcnt, real_readv);
+    if (fd == connection_socket) {
+        fprintf(stderr, "READV on connection FD=%d\n", fd);
+        resp = buffer_readv(iov, iovcnt);
 //        resp = real_readv(fd,iov,iovcnt);
         fprintf(stderr, "READV returned %d\n", resp);
     } else {
@@ -254,11 +186,57 @@ ssize_t readv(int fd, const struct iovec *iov, int iovcnt) {
     return resp;
 }
 
-// Pretty sure this is unnecessary
-__attribute__((constructor)) static void setup(void) {
-    int ret = fifo_setup(); // set up the fifo
-    fprintf(stderr, "%s: called setup()\n", getenv("PATH1"));
-    fprintf(stderr, "\n\n%s; %d\n\n", myfifo, ret);
+// This doesn't work, should initialize if undefined on call (not assuming beforehand)
+//__attribute__((constructor)) static void setup(void) {
+//    int ret = fifo_setup(); // set up the fifo
+//    fprintf(stderr, "%s: called setup()\n", getenv("PATH1"));
+//    fprintf(stderr, "\n\n%s; %d\n\n", myfifo, ret);
+//}
+
+// DEBUGGING , use make debug to compile library with these functions
+
+#ifdef DEBUG
+typedef int (*socket_t)(int domain, int type, int protocol);
+socket_t real_socket;
+int socket(int domain, int type, int protocol) {
+//    loadReal(real_socket, "socket");
+    if (!real_socket) {
+        real_socket = dlsym(RTLD_NEXT, "socket");
+    }
+    int ret = real_socket(domain, type, protocol);
+    fprintf(stderr, "called socket (%d, %d, %d) giving back %d \n", domain, type, protocol, ret);
+
+    return ret;
 }
 
+typedef int (*setsockopt_t)(int socket, int level, int option_name,
+                            const void *option_value, socklen_t option_len);
+setsockopt_t real_setsockopt;
 
+int setsockopt(int socket, int level, int option_name,
+               const void *option_value, socklen_t option_len) {
+    if (!real_setsockopt) {
+        real_setsockopt = dlsym(RTLD_NEXT, "setsockopt");
+    }
+//    loadReal(real_setsockopt, "setsockopt");
+    int resp = real_setsockopt(socket, level, option_name, option_value, option_len);
+    fprintf(stderr, "SETSOCKOPT socket=%d level=%d option_name=%d "
+                    "option_value=%s option_len=%zd resp=(%d)\n", socket,
+            level, option_name, option_value, option_len, resp);
+    return resp;
+}
+
+typedef int (*socketpair_t)(int domain, int type, int protocol, int sv[2]);
+socketpair_t real_socketpair;
+
+int socketpair(int domain, int type, int protocol, int sv[2]) {
+    if (!real_socketpair) {
+        real_socketpair = dlsym(RTLD_NEXT, "socketpair");
+    }
+//    loadReal(real_socketpair, "socketpair");
+    int resp = real_socketpair(domain, type, protocol, sv);
+    fprintf(stderr, "SOCKETPAIR domain=%d type=%d protocol=%d "
+                    "resp=(%d)\n", domain, type, protocol, resp);
+    return resp;
+}
+#endif
