@@ -10,20 +10,21 @@ CFLAGS  = -g -Wall -shared -fPIC
 # the build target executable:
 TARGET = library
 FIFO = buffer
+LOGGER = logger
 DEBUG = -D DEBUG
 
-all: run clean
+all: clean run
 
 # Compile with ENVOY FLAG SET
 envoy: $(TARGET).c $(FIFO).c
-	$(CC) $(CFLAGS) -D ENVOY $(TARGET).c $(FIFO).c -o envoy.so -ldl
+	$(CC) $(CFLAGS) -D ENVOY $(TARGET).c $(FIFO).c $(LOGGER).c -o envoy.so -ldl
 
 # Compile with SERVICE FLAG SET
 service: $(TARGET).c $(FIFO).c
-	$(CC) $(CFLAGS) -D SERVICE $(TARGET).c $(FIFO).c -o service.so -ldl
+	$(CC) $(CFLAGS) -D SERVICE $(TARGET).c $(FIFO).c $(LOGGER).c -o service.so -ldl
 
 debug: $(TARGET).c $(FIFO).c
-	$(CC) $(CFLAGS) $(DEBUG) -D SERVICE -D ENVOY $(TARGET).c $(FIFO).c -o shared.so -ldl
+	$(CC) $(CFLAGS) $(DEBUG) -D SERVICE -D ENVOY $(TARGET).c $(FIFO).c $(LOGGER).c -o shared.so -ldl
 
 run: envoy service
 	./start_static_service.sh

@@ -2,6 +2,7 @@
 
 //#include "fifo.h"
 #include "buffer.h"
+#include "logger.h"
 
 #include <arpa/inet.h>
 #include <stdlib.h>
@@ -53,16 +54,16 @@ int bind(int socket, const struct sockaddr *address, socklen_t address_len) {
 
 // Doesn't matter if listening, just care about accept
 
-//typedef int (*listen_t)(int socket, int backlog);
-//listen_t real_listen;
-//int listen(int socket, int backlog) {
-//    if (!real_listen) {
-//        real_listen = dlsym(RTLD_NEXT, "listen");
-//    }
-//    fprintf(stderr, "Listen on socket %d\n", socket);
-//
-//    return real_listen(socket, backlog);
-//}
+typedef int (*listen_t)(int socket, int backlog);
+listen_t real_listen;
+int listen(int socket, int backlog) {
+    if (!real_listen) {
+        real_listen = dlsym(RTLD_NEXT, "listen");
+    }
+    fprintf(stderr, "Listen on socket %d\n", socket);
+
+    return real_listen(socket, backlog);
+}
 
 typedef int (*accept_t)(int socket, struct sockaddr *address, socklen_t *address_len);
 accept_t real_accept;
@@ -121,8 +122,11 @@ ssize_t write(int fd, const void *buf, size_t count) {
     // TODO: Once we figure out the fd, just call fifo_write().
     ssize_t res = 0;
     if (fd == connection_socket && count > 0) {
-        fprintf(stderr, "Write on connection=%d,len=%zd, contents=%s\n", fd,  count, ((char *)buf));
+        fprintf(stderr, "Buffer write on connection=%d,len=%zd, contents=%s\n", fd,  count, ((char *)buf));
         res = buffer_write(buf, count);
+        fprintf(stderr, "Buffer write returned %zu\n", res);
+        res = real_write(fd, buf, count);
+        fprintf(stderr, "REAL write return %zu \n", res);
     } else {
         res = real_write(fd, buf, count);
     }
@@ -141,8 +145,11 @@ ssize_t read(int fd, void *buf, size_t count) {
     ssize_t res = 0;
 //    ssize_t res = real_read(fd,buf,count);
     if (fd == connection_socket && res > 0) {
-        fprintf(stderr, "Read on connection=%d,len=%zd, contents=%s\n", fd,  res, ((char *)buf));
+        fprintf(stderr, "Buffer Read on connection=%d,len=%zd, contents=%s\n", fd,  count, ((char *)buf));
         res = buffer_read(buf, count);
+        fprintf(stderr, "Buffer Read return %zu \n", res);
+        res = real_read(fd, buf, count);
+        fprintf(stderr, "REAL Read return %zu \n", res);
     } else {
         res = real_read(fd, buf, count);
     }
@@ -158,13 +165,16 @@ ssize_t writev(int fildes, const struct iovec *iov, int iovcnt) {
         real_writev = dlsym(RTLD_NEXT, "writev");
     }
     if (fildes == connection_socket) {
-        fprintf(stderr, "WRITEV on connection FD=%d\n", fildes);
+        fprintf(stderr, "BUFFER WRITEV on connection FD=%d\n", fildes);
         resp = buffer_writev(iov, iovcnt);
 //        resp = real_writev(fildes, iov, iovcnt);
-        fprintf(stderr, "WRITEV returned %d\n", resp);
+        fprintf(stderr, "BUFFER WRITEV returned %zu\n", resp);
+        resp = real_writev(fildes, iov, iovcnt);
+        fprintf(stderr, "REAL WRITEV returned %zu\n", resp);
     } else {
         resp = real_writev(fildes, iov, iovcnt);
     }
+
     return resp;
 }
 
@@ -176,10 +186,12 @@ ssize_t readv(int fd, const struct iovec *iov, int iovcnt) {
         real_readv = dlsym(RTLD_NEXT, "readv");
     }
     if (fd == connection_socket) {
-        fprintf(stderr, "READV on connection FD=%d\n", fd);
+        fprintf(stderr, "BUFFER READV on connection FD=%d\n", fd);
         resp = buffer_readv(iov, iovcnt);
 //        resp = real_readv(fd,iov,iovcnt);
-        fprintf(stderr, "READV returned %d\n", resp);
+        fprintf(stderr, "BUFFER READV returned %zu\n", resp);
+        resp = real_readv(fd, iov, iovcnt);
+        fprintf(stderr, "REAL READV returned %zu\n", resp);
     } else {
         resp = real_readv(fd, iov, iovcnt);
     }

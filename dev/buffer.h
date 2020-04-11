@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/syscall.h>
+#include "logger.h"
 
 #define BFILE "kmapHellYea"
 #define BID 69
