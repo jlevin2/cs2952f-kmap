@@ -19,6 +19,7 @@ void buffer_setup() {
 
 // READ OUT FROM data_buffer into buf
 ssize_t buffer_read(void *buf, size_t count) {
+    buffer_setup();
     size_t numRead = 0;
     // TODO, make this not byte wise (use like memcpy)
     for (numRead = 0; numRead < count; numRead++) {
@@ -35,6 +36,7 @@ ssize_t buffer_read(void *buf, size_t count) {
 
 // WRITE TO data_buffer from buf
 ssize_t buffer_write(const void *buf, size_t count) {
+    buffer_setup();
     size_t numWritten = 0;
     // TODO, make this not byte wise (use like memcpy)
     for (numWritten = 0; numWritten < count; numWritten++) {
@@ -51,6 +53,7 @@ ssize_t buffer_write(const void *buf, size_t count) {
 
 
 ssize_t buffer_readv(const struct iovec *iov, int iovcnt) {
+    buffer_setup();
     ssize_t numRead = 0;
     for (int i = 0; i < iovcnt; i++) {
         struct iovec curIovec = iov[i];
@@ -66,6 +69,7 @@ ssize_t buffer_readv(const struct iovec *iov, int iovcnt) {
 
 
 ssize_t buffer_writev(const struct iovec *iov, int iovcnt) {
+    buffer_setup();
     ssize_t numWritten = 0;
     for (int i = 0; i < iovcnt; i++) {
         struct iovec curIovec = iov[i];
