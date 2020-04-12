@@ -25,7 +25,13 @@ int connection_socket = 0;
 
 #define PORT 8080
 
+int segfault() {
+    int *ptr = NULL;
+    return *ptr;
+}
+
 #ifdef SERVICE
+
 typedef int (*bind_t)(int sockfd, const struct sockaddr *addr,
          socklen_t addrlen);
 bind_t real_bind;
@@ -52,8 +58,6 @@ int bind(int socket, const struct sockaddr *address, socklen_t address_len) {
     return bindFD;
 }
 
-// Doesn't matter if listening, just care about accept
-
 typedef int (*listen_t)(int socket, int backlog);
 listen_t real_listen;
 int listen(int socket, int backlog) {
@@ -65,20 +69,19 @@ int listen(int socket, int backlog) {
     return real_listen(socket, backlog);
 }
 
-typedef int (*accept_t)(int socket, struct sockaddr *address, socklen_t *address_len);
-accept_t real_accept;
-int accept(int socket, struct sockaddr *address, socklen_t *address_len) {
-    if (!real_accept) {
-        real_accept = dlsym(RTLD_NEXT, "accept");
+typedef int (*socket_t)(int domain, int type, int protocol);
+socket_t real_socket;
+int socket(int domain, int type, int protocol) {
+    real_socket = dlsym(RTLD_NEXT, "socket");
+    int ret = real_socket(domain, type, protocol);
+
+    if (domain == PF_LOCAL) {
+        connection_socket = ret;
     }
-    fprintf(stderr, "Accept on socket %d\n", socket);
-    int returnFD = real_accept(socket, address, address_len);
-    if (socket == inbound_socket) {
-        fprintf(stderr, "Connection socket set to %d!\n", returnFD);
-        connection_socket = returnFD;
-    }
-    return returnFD;
+
+    return ret;
 }
+
 #endif
 
 #ifdef ENVOY
@@ -134,9 +137,7 @@ ssize_t write(int fd, const void *buf, size_t count) {
 }
 
 typedef ssize_t (*read_t)(int fd, void *buf, size_t count);
-
 read_t real_read;
-
 ssize_t read(int fd, void *buf, size_t count) {
     if (!real_read) {
         real_read = dlsym(RTLD_NEXT, "read");
@@ -167,7 +168,6 @@ ssize_t writev(int fildes, const struct iovec *iov, int iovcnt) {
     if (fildes == connection_socket) {
         fprintf(stderr, "BUFFER WRITEV on connection FD=%d\n", fildes);
         resp = buffer_writev(iov, iovcnt);
-//        resp = real_writev(fildes, iov, iovcnt);
         fprintf(stderr, "BUFFER WRITEV returned %zu\n", resp);
         resp = real_writev(fildes, iov, iovcnt);
         fprintf(stderr, "REAL WRITEV returned %zu\n", resp);
@@ -188,7 +188,6 @@ ssize_t readv(int fd, const struct iovec *iov, int iovcnt) {
     if (fd == connection_socket) {
         fprintf(stderr, "BUFFER READV on connection FD=%d\n", fd);
         resp = buffer_readv(iov, iovcnt);
-//        resp = real_readv(fd,iov,iovcnt);
         fprintf(stderr, "BUFFER READV returned %zu\n", resp);
         resp = real_readv(fd, iov, iovcnt);
         fprintf(stderr, "REAL READV returned %zu\n", resp);
@@ -198,12 +197,89 @@ ssize_t readv(int fd, const struct iovec *iov, int iovcnt) {
     return resp;
 }
 
+typedef ssize_t (*send_t)(int socket, const void *buffer, size_t length, int flags);
+send_t real_send;
+ssize_t send(int socket, const void *buffer, size_t length, int flags) {
+    ssize_t ret;
+
+    if (!real_send)
+        real_send = dlsym(RTLD_NEXT, "send");
+
+    if (socket == connection_socket) {
+        ret = buffer_write(buffer, length);
+    } else {
+        ret = real_send(socket, buffer, length, flags);
+    }
+
+    return ret;
+}
+
+typedef ssize_t (*sendto_t)(int socket, const void *buffer, size_t length, int flags,
+                             const struct sockaddr *dest_addr, socklen_t dest_len);
+sendto_t real_sendto;
+ssize_t sendto(int socket, const void *buffer, size_t length, int flags,
+               const struct sockaddr *dest_addr, socklen_t dest_len) {
+    ssize_t ret;
+
+    if (!real_sendto)
+        real_sendto = dlsym(RTLD_NEXT, "sendto");
+
+    if (socket == connection_socket) {
+        ret = buffer_write(buffer, length);
+    } else {
+        ret = real_sendto(socket, buffer, length, flags, dest_addr, dest_len);
+    }
+
+    return ret;
+}
+
+// TODO: sendmsg is a relatively new syscall and I don't think Python uses this...
+// TODO: We'll add sendmsg and recvmsg later...
+
+typedef ssize_t (*recv_t)(int socket, void *buffer, size_t length, int flags);
+recv_t real_recv;
+ssize_t recv(int socket, void *buffer, size_t length, int flags) {
+    ssize_t ret;
+
+    if (!real_recv)
+        real_recv = dlsym(RTLD_NEXT, "recv");
+
+    if (socket == connection_socket) {
+        ret = buffer_read(buffer, length);
+    } else {
+        ret = real_recv(socket, buffer, length, flags);
+    }
+
+    return ret;
+}
+
+typedef ssize_t (*recvfrom_t)(int socket, void *restrict buffer, size_t length, int flags,
+                              struct sockaddr *restrict address, socklen_t *restrict address_len);
+recvfrom_t real_recvfrom;
+ssize_t recvfrom(int socket, void *restrict buffer, size_t length, int flags,
+                 struct sockaddr *restrict address, socklen_t *restrict address_len){
+    ssize_t ret;
+
+    if (!real_recvfrom)
+        real_recvfrom = dlsym(RTLD_NEXT, "recv");
+
+    if (socket == connection_socket) {
+        ret = buffer_read(buffer, length);
+    } else {
+        ret = real_recvfrom(socket, buffer, length, flags, address, address_len);
+    }
+
+    return ret;
+}
+
+
 // This doesn't work, should initialize if undefined on call (not assuming beforehand)
-//__attribute__((constructor)) static void setup(void) {
-//    int ret = fifo_setup(); // set up the fifo
-//    fprintf(stderr, "%s: called setup()\n", getenv("PATH1"));
-//    fprintf(stderr, "\n\n%s; %d\n\n", myfifo, ret);
-//}
+__attribute__((constructor)) static void setup(void) {
+    buffer_setup();
+#ifdef SERVICE
+    connection_socket = 4;
+#endif
+}
 
 // DEBUGGING , use make debug to compile library with these functions
 

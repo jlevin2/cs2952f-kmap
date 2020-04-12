@@ -1,5 +1,6 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <sys/sem.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <unistd.h>
@@ -13,17 +14,26 @@
 
 #define BFILE "kmapHellYea"
 #define BID 69
+
+#define SEMID 420
+#define SEMFILE "virtualsem"
+
 // Currently 2^16 byte buffer
 #define BUFSIZE 65536
 
 
 #ifndef CS2952F_KMAP_BUFFER_H
 #define CS2952F_KMAP_BUFFER_H
+
+#define REALPOS(pos)    pos % BUFSIZE
+
 typedef struct {
     uint32_t head;
     uint32_t tail;
     char data[BUFSIZE];
 } buffer;
+
+void buffer_setup();
 
 ssize_t buffer_read(void *buf, size_t count);
 

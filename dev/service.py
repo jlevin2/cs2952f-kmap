@@ -56,4 +56,5 @@ def trace(service_color):
     return render_page()
 
 if __name__ == "__main__":
-    app.run(host='127.0.0.1', port=8080, debug=True)
+    # add the "use_reloader=False" to make sure that this process doesn't fork itself...
+    app.run(host='127.0.0.1', port=8080, debug=True, use_reloader=False)
