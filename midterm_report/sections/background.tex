@@ -6,6 +6,14 @@ These proxies intercept and control networking communication between services.
 The proxies are relatively lightweight, but use the networking stack for communication with the co-located service (Figure-\ref{fig:no_kmap}).
 They do this to preserve a common interface for services-- the networking stack.
 Istio uses Envoy~\cite{envoy} which is the tool we focus on here for \sysname.
+\begin{figure}[!htb]
+    \begin{minipage}{0.5\textwidth}
+        \centering
+        \includegraphics[keepaspectratio=true,width=3in]{figures/background/envoy.png}
+        \caption{Envoy Network Stack~\cite{envoy_image}}
+        \label{fig:envoy}
+    \end{minipage}%
+\end{figure}
 
 \begin{figure}[!htb]
     \begin{minipage}{0.5\textwidth}
@@ -16,5 +24,3 @@ Istio uses Envoy~\cite{envoy} which is the tool we focus on here for \sysname.
     \end{minipage}%
 \end{figure}
 
-\subsection{Envoy}
-Envoy!

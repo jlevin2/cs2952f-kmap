@@ -4,8 +4,25 @@
 Envoy proxy - home.
 \newblock \url{https://www.envoyproxy.io/}.
 
+\bibitem{flask}
+Flask.
+\newblock \url{https://flask.palletsprojects.com/en/1.1.x/}.
+
+\bibitem{ipcperf}
+Ipc performance.
+\newblock
+  \url{https://stackoverflow.com/questions/1235958/ipc-performance-named-pipe-vs-socket/54164058#54164058}.
+
 \bibitem{istio}
 Istio.
 \newblock \url{https://istio.io/}.
+
+\bibitem{ldpreload}
+Ld\_preload documentation.
+\newblock \url{http://man7.org/linux/man-pages/man8/ld.so.8.html}.
+
+\bibitem{envoy_image}
+{\sc Song, J.}
+\newblock \url{https://jimmysong.io/}.
 
 \end{thebibliography}

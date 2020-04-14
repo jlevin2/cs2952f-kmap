@@ -26,17 +26,19 @@ The two critical challenges to realizing \sysname are:
 \end{figure}
 
 \subsection{LD Preload}
-
-
+The Linux LD\_PRELOAD command~\cite{ldpreload} allows users to preload particular libraries ahead of the conventional linker and loader.
+This enables users to load symbols before classic libraries (e.g. libc, syscalls).
+Commonly this is referred to as the "LD\_PRELOAD trick".
+For \sysname, we use LD\_PRELOAD to load the \sysname libraries before conventional libraries such as libc.
+Inside each \sysname library we use \textit{dlsym} to load the "real" libc functions we wrap.
 
 \subsection{Pipe options}
 Here, we outline potential methods for implementing the buffer \sysname uses to pass data between Envoy and the microservice.
 
-
 \textbf{Named Pipes:}
 Named pipes, (FIFO) are blocking, uni-directional I/O buffers for passing data between two processes.
 The pipe must be opened for both reading and writing before being written two.
-Named pipes are traditionally slow, only offering slight speed advantages over TCP.
+Named pipes are traditionally slow, only offering slight speed advantages over TCP~\cite{ipcperf}.
 Further, they are un-directional which makes them less accessible or interchangeable compared to TCP.
 
 \textbf{Unnamed Pipes:}
@@ -48,7 +50,7 @@ This makes them particularly tricky to implement across two independent processe
 Shared memory is a robust API which allows processes to share use of a memory region (\textit{schm\_open}).
 This requires mapping the same underlying memory region into the virtual memory of each process (\textit{mmap}).
 Shared memory is concretely faster than pipes and the primary API \sysname uses for communicating information.
-Shared memory has been benchmarked to be 170 times faster than TCP sockets for communicating information between processes.
+Shared memory has been benchmarked to be 170 times faster than TCP sockets for communicating information between processes~\cite{ipcperf}.
 However, shared memory does not directly provide a buffer interface like TCP, ans so \sysname must implement that as part of its library.
 
 
@@ -59,5 +61,4 @@ to pass through the call, or when to route to the local buffer.
 Since \sysname is designing primarily for Envoy, we use information about how it communicates with microservices to determine
 which file descriptors should use \sysname.
 This approach is not directly applicable to other sidecars (i.e. Linkerd) but is generalizable for applications, provided the applications work with Envoy first.
-
 

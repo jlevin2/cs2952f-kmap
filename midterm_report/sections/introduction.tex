@@ -1,3 +1,16 @@
 \section{Introduction}
 \label{sec:introduction}
-Envoy~\cite{envoy}!!
+The development of the microservice and servicemesh has brought the sidecar container to the forefront of distributed services.
+These sidecares provide shared features among services deployed on the servicemesh.
+However, these sidecars are often interjected in a service-agnostic way by modifying iptables to redirect network communication through the sidecars.
+This process can introduce significant latency to responses.
+We focus on the Envoy~\cite{envoy} sidecar used by the Istio~\cite{istio} servicemesh.
+
+We present \sysname as an alternative library loaded via LD\_PRELOAD using shared memory to optimize data communication between processes.
+Our work focuses on two key aspects:
+\begin{enumerate}
+    \item Building an efficient data path between Envoy and services
+    \item Developing a robust API which mirrors the original network stack
+\end{enumerate}
+
+Our initial prototype explores challenges and design paths in the development of \sysname.
