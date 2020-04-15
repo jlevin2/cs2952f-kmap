@@ -17,10 +17,10 @@ void buffer_setup() {
     int shmid = shmget(key, sizeof(buffer), 0666 | IPC_CREAT);
     data_buffer = (buffer *) shmat(shmid, (void *)0, 0);
 
-    if ((semaphore = sem_open(SEMFILE, O_CREAT, 0600, 0)) == SEM_FAILED) {
-        perror("sem_open");
-        exit(1);
-    }
+//    if ((semaphore = sem_open(SEMFILE, O_CREAT, 0600, 0)) == SEM_FAILED) {
+//        perror("sem_open");
+//        exit(1);
+//    }
 }
 
 // copies into the cirular buffer and returns the total number of bytes copied
@@ -75,7 +75,7 @@ ssize_t circular_write(const void *buf, size_t count) {
 // READ OUT FROM data_buffer into buf
 ssize_t buffer_read(void *buf, size_t count) {
     buffer_setup();
-    sem_wait(semaphore);
+//    sem_wait(semaphore);
     return circular_read(buf, count);
 }
 
@@ -84,14 +84,14 @@ ssize_t buffer_read(void *buf, size_t count) {
 ssize_t buffer_write(const void *buf, size_t count) {
     buffer_setup();
     ssize_t ret = circular_write(buf, count);
-    sem_post(semaphore);
+//    sem_post(semaphore);
     return ret;
 }
 
 
 ssize_t buffer_readv(const struct iovec *iov, int iovcnt) {
     buffer_setup();
-    sem_wait(semaphore);
+//    sem_wait(semaphore);
     ssize_t numRead = 0;
 
     for (int i = 0; i < iovcnt; i++) {
@@ -121,15 +121,15 @@ ssize_t buffer_writev(const struct iovec *iov, int iovcnt) {
         }
     }
 
-    sem_post(semaphore);
+//    sem_post(semaphore);
     return numWritten;
 }
 
 
-// returns 1 if the buffer is ready, 0 otherwise
-int buffer_ready(){
-    int val;
-    int ret = sem_getvalue(semaphore, &val);
-    return ret ? 0 : (val > 0);
-}
+//// returns 1 if the buffer is ready, 0 otherwise
+//int buffer_ready(){
+//    int val;
+//    int ret = sem_getvalue(semaphore, &val);
+//    return ret ? 0 : (val > 0);
+//}
 

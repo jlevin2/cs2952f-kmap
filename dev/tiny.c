@@ -209,7 +209,8 @@ int main(int argc, char **argv) {
             /* Use mmap to return arbitrary-sized response body */
             fd = open(filename, O_RDONLY);
             p = mmap(0, sbuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-            fwrite(p, 1, sbuf.st_size, stream);
+//            fwrite(p, 1, sbuf.st_size, stream);
+            write(childfd, p, sbuf.st_size);
             munmap(p, sbuf.st_size);
         }
 

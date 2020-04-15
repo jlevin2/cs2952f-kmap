@@ -53,6 +53,13 @@ int segfault() {
 #define SERVICE_PORT 8080
 #define SERVICE_ADDRESS "127.0.0.1"
 
+typedef int (*accept_t)(int socket, struct sockaddr *restrict address, socklen_t *restrict address_len);
+accept_t real_accept;
+int accept(int socket, struct sockaddr *restrict address, socklen_t *restrict address_len) {
+    real_accept = dlsym(RTLD_NEXT, "accept");
+    return connection_socket = real_accept(socket, address, address_len);
+}
+
 typedef int (*bind_t)(int sockfd, const struct sockaddr *addr,
          socklen_t addrlen);
 bind_t real_bind;
@@ -232,8 +239,8 @@ ssize_t write(int fd, const void *buf, size_t count) {
         write_log( "Buffer write on connection=%d,len=%zd, contents=%s\n", fd,  count, ((char *)buf));
         res = buffer_write(buf, count);
         write_log( "Buffer write returned %zu\n", res);
-        res = real_write(fd, buf, count);
-        write_log( "REAL write return %zu \n", res);
+//        res = real_write(fd, buf, count);
+//        write_log( "REAL write return %zu \n", res);
     } else {
         res = real_write(fd, buf, count);
     }
@@ -253,8 +260,8 @@ ssize_t read(int fd, void *buf, size_t count) {
         write_log( "Buffer Read on connection=%d,len=%zd, contents=%s\n", fd,  count, ((char *)buf));
         res = buffer_read(buf, count);
         write_log( "Buffer Read return %zu \n", res);
-        res = real_read(fd, buf, count);
-        write_log( "REAL Read return %zu \n", res);
+//        res = real_read(fd, buf, count);
+//        write_log( "REAL Read return %zu \n", res);
     } else {
         res = real_read(fd, buf, count);
     }
@@ -273,8 +280,8 @@ ssize_t writev(int fildes, const struct iovec *iov, int iovcnt) {
         write_log( "BUFFER WRITEV on connection FD=%d\n", fildes);
         resp = buffer_writev(iov, iovcnt);
         write_log( "BUFFER WRITEV returned %zu\n", resp);
-        resp = real_writev(fildes, iov, iovcnt);
-        write_log( "REAL WRITEV returned %zu\n", resp);
+//        resp = real_writev(fildes, iov, iovcnt);
+//        write_log( "REAL WRITEV returned %zu\n", resp);
     } else {
         resp = real_writev(fildes, iov, iovcnt);
     }
@@ -293,8 +300,8 @@ ssize_t readv(int fd, const struct iovec *iov, int iovcnt) {
         write_log( "BUFFER READV on connection FD=%d\n", fd);
         resp = buffer_readv(iov, iovcnt);
         write_log( "BUFFER READV returned %zu\n", resp);
-        resp = real_readv(fd, iov, iovcnt);
-        write_log( "REAL READV returned %zu\n", resp);
+//        resp = real_readv(fd, iov, iovcnt);
+//        write_log( "REAL READV returned %zu\n", resp);
     } else {
         resp = real_readv(fd, iov, iovcnt);
     }
