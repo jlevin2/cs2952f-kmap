@@ -34,8 +34,30 @@ This is critical as both applications need blocking and non-blocking, as well as
                 readv & X &  \\ \hline
             \end{tabular}
         }
-        \caption{Library Functions Linked (HTTP only)}
+        \caption{Library Functions Linked (HTTP/Flask only)}
         \label{t:libraries}
+    \end{center}
+\end{table}
+
+\begin{table}[!ht]
+    \begin{center}
+        \resizebox{0.5\columnwidth}{!}{
+            \begin{tabular}{ |c|c|c|}
+                \hline
+                \textbf{Function} & \textbf{Envoy} & \textbf{Service} \\
+                \hline \hline
+                socket & X & X \\ \hline
+                connect & X &  \\ \hline
+                listen &  & X \\ \hline
+                accept &  & X \\ \hline
+                write & X & X \\ \hline
+                read & X & X \\ \hline
+                writev & X &  \\ \hline
+                readv & X &  \\ \hline
+            \end{tabular}
+        }
+        \caption{Library Functions Linked (Tiny C Webserver only)}
+        \label{t:libraries_cserver}
     \end{center}
 \end{table}
 
@@ -47,6 +69,10 @@ Our investigation of Flask~\cite{flask} has revealed a number of idiosyncrasies 
 To make \sysname generalizable, you would truly have to intercept very single network call (or possible network related).
 This task is enourmous.
 For our prototype we have focused on HTTP.
-In Table-\ref{t:libraries}, we show the calls on each side we link to use \sysname.
+In Table-\ref{t:libraries}, we show the calls on each side we link to use \sysname for flask.
+Currently our prototype works with our tiny C server (Table-\ref{t:libraries_cserver}).
+
+\subsection{Initial Results}
+Blah
 
 
