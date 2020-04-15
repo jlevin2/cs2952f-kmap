@@ -1,21 +1,22 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
-#include <sys/sem.h>
+#include <semaphore.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <string.h>
 #include <fcntl.h>
 #include <sys/uio.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/syscall.h>
+#include <assert.h>
 #include "logger.h"
 
 #define BFILE "kmapHellYea"
 #define BID 69
 
-#define SEMID 420
 #define SEMFILE "virtualsem"
 
 // Currently 2^16 byte buffer

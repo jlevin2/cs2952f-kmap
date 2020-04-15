@@ -7,6 +7,7 @@
 #include <arpa/inet.h>
 #include <stdlib.h>
 #include <string.h>
+#include <poll.h>
 #include <dlfcn.h>
 #include <netinet/ip.h>
 #include <netinet/in.h>
@@ -99,6 +100,8 @@ int socket(int domain, int type, int protocol) {
         connection_socket = ret;
     }
 
+    connection_socket = 4;
+
     return ret;
 }
 
@@ -111,7 +114,7 @@ int setsockopt(int socket, int level, int option_name,
     if (!real_setsockopt) {
         real_setsockopt = dlsym(RTLD_NEXT, "setsockopt");
     }
-//    loadReal(real_setsockopt, "setsockopt");
+
     int resp = real_setsockopt(socket, level, option_name, option_value, option_len);
     write_log( "SETSOCKOPT socket=%d level=%d option_name=%d "
                     "option_value=%s option_len=%zu resp=(%d)\n", socket,
@@ -131,6 +134,7 @@ ssize_t send(int socket, const void *buffer, size_t length, int flags) {
 
     memset(&my_addr, 0, sizeof(my_addr));
     socklen_t len = sizeof(my_addr);
+
     // this looks up which port the addr is bound to,
     // if bind isn't called yet then it returns null
     getsockname(socket, (struct sockaddr *) &my_addr, &len);
@@ -242,9 +246,9 @@ ssize_t read(int fd, void *buf, size_t count) {
     if (!real_read) {
         real_read = dlsym(RTLD_NEXT, "read");
     }
-    // TODO: Once we figure out the fd, just call fifo_read().
+
     ssize_t res = 0;
-//    ssize_t res = real_read(fd,buf,count);
+
     if (fd == connection_socket && res > 0) {
         write_log( "Buffer Read on connection=%d,len=%zd, contents=%s\n", fd,  count, ((char *)buf));
         res = buffer_read(buf, count);
@@ -299,7 +303,6 @@ ssize_t readv(int fd, const struct iovec *iov, int iovcnt) {
 
 // TODO: sendmsg is a relatively new syscall and I don't think Python uses this...
 // TODO: We'll add sendmsg and recvmsg later...
-
 typedef ssize_t (*recv_t)(int socket, void *buffer, size_t length, int flags);
 recv_t real_recv;
 ssize_t recv(int socket, void *buffer, size_t length, int flags) {
@@ -337,16 +340,7 @@ ssize_t recvfrom(int socket, void *restrict buffer, size_t length, int flags,
 }
 
 
-// This doesn't work, should initialize if undefined on call (not assuming beforehand)
-//__attribute__((constructor)) static void setup(void) {
-//    buffer_setup();
-//#ifdef SERVICE
-//    connection_socket = 4;
-//#endif
-//}
-
 // DEBUGGING , use make debug to compile library with these functions
-
 #ifdef DEBUG
 typedef int (*socket_t)(int domain, int type, int protocol);
 socket_t real_socket;
