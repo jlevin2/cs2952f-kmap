@@ -60,57 +60,57 @@ int accept(int socket, struct sockaddr *restrict address, socklen_t *restrict ad
     return connection_socket = real_accept(socket, address, address_len);
 }
 
-typedef int (*bind_t)(int sockfd, const struct sockaddr *addr,
-         socklen_t addrlen);
-bind_t real_bind;
-int bind(int socket, const struct sockaddr *address, socklen_t address_len) {
-    if (!real_bind) {
-        real_bind = dlsym(RTLD_NEXT, "bind");
-    }
-    // CALL BIND SO WE SEE WHICH PORT WAS ASSIGNED
-    int bindFD = real_bind(socket, address, address_len);
-    struct sockaddr_in my_addr;
+//typedef int (*bind_t)(int sockfd, const struct sockaddr *addr,
+//         socklen_t addrlen);
+//bind_t real_bind;
+//int bind(int socket, const struct sockaddr *address, socklen_t address_len) {
+//    if (!real_bind) {
+//        real_bind = dlsym(RTLD_NEXT, "bind");
+//    }
+//    // CALL BIND SO WE SEE WHICH PORT WAS ASSIGNED
+//    int bindFD = real_bind(socket, address, address_len);
+//    struct sockaddr_in my_addr;
+//
+//    memset(&my_addr, 0, sizeof(my_addr));
+//    socklen_t len = sizeof(my_addr);
+//    // this looks up which port the addr is bound to,
+//    // if bind isn't called yet then it returns null
+//    getsockname(socket, (struct sockaddr *) &my_addr, &len);
+//    int myPort = ntohs(my_addr.sin_port);
+//    write_log( "Bind called on local port : %d\n", myPort);
+//    if (myPort == SERVICE_PORT) {
+//        write_log( "Storing socket=%d binded to port=%d\n", socket, myPort);
+//        inbound_socket = socket;
+//    }
+//
+//    return bindFD;
+//}
 
-    memset(&my_addr, 0, sizeof(my_addr));
-    socklen_t len = sizeof(my_addr);
-    // this looks up which port the addr is bound to,
-    // if bind isn't called yet then it returns null
-    getsockname(socket, (struct sockaddr *) &my_addr, &len);
-    int myPort = ntohs(my_addr.sin_port);
-    write_log( "Bind called on local port : %d\n", myPort);
-    if (myPort == SERVICE_PORT) {
-        write_log( "Storing socket=%d binded to port=%d\n", socket, myPort);
-        inbound_socket = socket;
-    }
+//typedef int (*listen_t)(int socket, int backlog);
+//listen_t real_listen;
+//int listen(int socket, int backlog) {
+//    if (!real_listen) {
+//        real_listen = dlsym(RTLD_NEXT, "listen");
+//    }
+//    write_log( "Listen on socket %d\n", socket);
+//
+//    return real_listen(socket, backlog);
+//}
 
-    return bindFD;
-}
-
-typedef int (*listen_t)(int socket, int backlog);
-listen_t real_listen;
-int listen(int socket, int backlog) {
-    if (!real_listen) {
-        real_listen = dlsym(RTLD_NEXT, "listen");
-    }
-    write_log( "Listen on socket %d\n", socket);
-
-    return real_listen(socket, backlog);
-}
-
-typedef int (*socket_t)(int domain, int type, int protocol);
-socket_t real_socket;
-int socket(int domain, int type, int protocol) {
-    real_socket = dlsym(RTLD_NEXT, "socket");
-    int ret = real_socket(domain, type, protocol);
-    write_log( "New Socket : %d\n", ret);
-    if (domain == PF_LOCAL) {
-        connection_socket = ret;
-    }
-
-    connection_socket = 4;
-
-    return ret;
-}
+//typedef int (*socket_t)(int domain, int type, int protocol);
+//socket_t real_socket;
+//int socket(int domain, int type, int protocol) {
+//    real_socket = dlsym(RTLD_NEXT, "socket");
+//    int ret = real_socket(domain, type, protocol);
+//    write_log( "New Socket : %d\n", ret);
+//    if (domain == PF_LOCAL) {
+//        connection_socket = ret;
+//    }
+//
+//    connection_socket = 4;
+//
+//    return ret;
+//}
 
 typedef int (*setsockopt_t)(int socket, int level, int option_name,
                             const void *option_value, socklen_t option_len);
