@@ -68,6 +68,7 @@ int main(int argc, char **argv) {
     /* variables for connection I/O */
     FILE *stream;           /* stream version of childfd */
     char buf[BUFSIZE];      /* message buffer */
+    char response[BUFSIZE]; /* response buffer */
     char method[BUFSIZE];   /* request method */
     char uri[BUFSIZE];      /* request uri */
     char version[BUFSIZE];  /* request method */
@@ -199,12 +200,20 @@ int main(int argc, char **argv) {
                 strcpy(filetype, "text/plain");
 
             /* print response header */
-            fprintf(stream, "HTTP/1.1 200 OK\n");
-            fprintf(stream, "Server: Tiny Web Server\n");
-            fprintf(stream, "Content-length: %d\n", (int)sbuf.st_size);
-            fprintf(stream, "Content-type: %s\n", filetype);
-            fprintf(stream, "\r\n");
-            fflush(stream);
+//            fprintf(stream, "HTTP/1.1 200 OK\n");
+//            fprintf(stream, "Server: Tiny Web Server\n");
+//            fprintf(stream, "Content-length: %d\n", (int)sbuf.st_size);
+//            fprintf(stream, "Content-type: %s\n", filetype);
+//            fprintf(stream, "\r\n");
+//            fflush(stream);
+            memset(response, 0, sizeof(char) * BUFSIZE);
+            sprintf(response, "HTTP/1.1 200 OK\n");
+            sprintf(response + strlen(response), "Server: Tiny Web Server\n");
+            sprintf(response + strlen(response), "Content-length: %d\n", (int)sbuf.st_size);
+            sprintf(response + strlen(response), "Content-type: %s\n", filetype);
+            sprintf(response + strlen(response), "\r\n");
+            write(childfd, response, strlen(response));
+
 
             /* Use mmap to return arbitrary-sized response body */
             fd = open(filename, O_RDONLY);
