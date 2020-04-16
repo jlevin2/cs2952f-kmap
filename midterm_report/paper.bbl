@@ -21,8 +21,25 @@ Istio.
 Ld\_preload documentation.
 \newblock \url{http://man7.org/linux/man-pages/man8/ld.so.8.html}.
 
+\bibitem{netkernel}
+{\sc Niu, Z., Xu, H., Han, D., Cheng, P., Xiong, Y., Chen, G., and Winstein,
+  K.}
+\newblock Network stack as a service in the cloud.
+\newblock In {\em Proceedings of the 16th ACM Workshop on Hot Topics in
+  Networks\/} (New York, NY, USA, 2017), HotNets-XVI, Association for Computing
+  Machinery, p.~65–71.
+
 \bibitem{envoy_image}
 {\sc Song, J.}
 \newblock \url{https://jimmysong.io/}.
+
+\bibitem{slimos}
+{\sc Zhuo, D., Zhang, K., Zhu, Y., Liu, H.~H., Rockett, M., Krishnamurthy, A.,
+  and Anderson, T.}
+\newblock Slim: {OS} kernel support for a low-overhead container overlay
+  network.
+\newblock In {\em 16th {USENIX} Symposium on Networked Systems Design and
+  Implementation ({NSDI} 19)\/} (Boston, MA, Feb. 2019), {USENIX} Association,
+  pp.~331--344.
 
 \end{thebibliography}
