@@ -69,10 +69,11 @@ Our investigation of Flask~\cite{flask} has revealed a number of idiosyncrasies 
 To make \sysname generalizable, you would truly have to intercept very single network call (or possible network related).
 This task is enourmous.
 For our prototype we have focused on HTTP.
-In Table-\ref{t:libraries}, we show the calls on each side we link to use \sysname for flask.
-Currently our prototype works with our tiny C server (Table-\ref{t:libraries_cserver}).
+In Table-\ref{t:libraries}, we show the calls on each side we intend to link to use \sysname for flask.
+Currently our prototype is geared for the tiny C server (Table-\ref{t:libraries_cserver}).
 
-\subsection{Initial Results}
-Blah
 
+\subsection{\sysname Status}
+We have found tracing the call paths and stack for the networking calls of the C web server and flask tremendously difficult.
+As of now we do not have a functional prototype for results.
 
