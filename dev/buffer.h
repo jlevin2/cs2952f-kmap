@@ -12,7 +12,6 @@
 #include <sys/types.h>
 #include <sys/syscall.h>
 #include <assert.h>
-#include "logger.h"
 
 #define BFILE "kmapHellYea"
 #define BID 69

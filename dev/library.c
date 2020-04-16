@@ -20,26 +20,6 @@
  *
  */
 
-#define RED   "\x1B[31m"
-#define GRN   "\x1B[32m"
-#define YEL   "\x1B[33m"
-#define BLU   "\x1B[34m"
-#define MAG   "\x1B[35m"
-#define CYN   "\x1B[36m"
-#define WHT   "\x1B[37m"
-#define RESET "\x1B[0m"
-
-#ifdef ENVOY
-#define write_log(format,args...) fprintf(stderr, RED format RESET, ## args);
-//#define PRINTF(...) printf(BLU __VA_ARGS__ RESET)
-#endif
-
-#ifdef SERVICE
-#define write_log(format,args...) fprintf(stderr, BLU format RESET, ## args);
-//#define PRINTF(...) printf(MAG __VA_ARGS__ RESET)
-#endif
-
-
 // UNIVERSAL
 int inbound_socket = 0;
 int connection_socket = 0;
@@ -57,8 +37,22 @@ typedef int (*accept_t)(int socket, struct sockaddr *restrict address, socklen_t
 accept_t real_accept;
 int accept(int socket, struct sockaddr *restrict address, socklen_t *restrict address_len) {
     real_accept = dlsym(RTLD_NEXT, "accept");
-    return connection_socket = real_accept(socket, address, address_len);
+
+    struct sockaddr_in *myaddr = (struct sockaddr_in *) address;
+    int myPort = ntohs(myaddr->sin_port);
+    char ipAddress[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &(myaddr->sin_addr), ipAddress, INET_ADDRSTRLEN);
+
+    write_log("ACCEPT called sockdf=%d, IP=%s, Port=%d\n", socket, ipAddress, myPort);
+
+    connection_socket = real_accept(socket, address, address_len);
+    write_log("Accept return on socket %d, setting %d as connection_socket", socket, connection_socket);
+
+    return connection_socket;
 }
+
+//typedef FILE *(*fdopen_t)(int fd, const char *mode);
+
 
 //typedef int (*bind_t)(int sockfd, const struct sockaddr *addr,
 //         socklen_t addrlen);
@@ -112,22 +106,22 @@ int accept(int socket, struct sockaddr *restrict address, socklen_t *restrict ad
 //    return ret;
 //}
 
-typedef int (*setsockopt_t)(int socket, int level, int option_name,
-                            const void *option_value, socklen_t option_len);
-setsockopt_t real_setsockopt;
-
-int setsockopt(int socket, int level, int option_name,
-               const void *option_value, socklen_t option_len) {
-    if (!real_setsockopt) {
-        real_setsockopt = dlsym(RTLD_NEXT, "setsockopt");
-    }
-
-    int resp = real_setsockopt(socket, level, option_name, option_value, option_len);
-    write_log( "SETSOCKOPT socket=%d level=%d option_name=%d "
-                    "option_value=%s option_len=%zu resp=(%d)\n", socket,
-            level, option_name, option_value, option_len, resp);
-    return resp;
-}
+//typedef int (*setsockopt_t)(int socket, int level, int option_name,
+//                            const void *option_value, socklen_t option_len);
+//setsockopt_t real_setsockopt;
+//
+//int setsockopt(int socket, int level, int option_name,
+//               const void *option_value, socklen_t option_len) {
+//    if (!real_setsockopt) {
+//        real_setsockopt = dlsym(RTLD_NEXT, "setsockopt");
+//    }
+//
+//    int resp = real_setsockopt(socket, level, option_name, option_value, option_len);
+//    write_log( "SETSOCKOPT socket=%d level=%d option_name=%d "
+//                    "option_value=%s option_len=%zu resp=(%d)\n", socket,
+//            level, option_name, option_value, option_len, resp);
+//    return resp;
+//}
 
 typedef ssize_t (*send_t)(int socket, const void *buffer, size_t length, int flags);
 send_t real_send;
@@ -211,8 +205,6 @@ int connect(int sockfd, const struct sockaddr *addr,
 
     write_log("CONNECT sockdf=%d, IP=%s, Port=%d resp=(%d)\n", sockfd, ipAddress, myPort, resp);
 
-//    write_log( "CONNECT sockdf=%d, IP=%s, Port=%d resp=(%d)\n", sockfd, ipAddress, myPort, resp);
-
     if (resp < 0) {
         perror("Connect returned error code:");
     }
@@ -232,8 +224,7 @@ ssize_t write(int fd, const void *buf, size_t count) {
     if (!real_write) {
         real_write = dlsym(RTLD_NEXT, "write");
     }
-
-    // TODO: Once we figure out the fd, just call fifo_write().
+    write_log("Write on fd=%d", fd);
     ssize_t res = 0;
     if (fd == connection_socket && count > 0) {
         write_log( "Buffer write on connection=%d,len=%zd, contents=%s\n", fd,  count, ((char *)buf));
@@ -255,7 +246,7 @@ ssize_t read(int fd, void *buf, size_t count) {
     }
 
     ssize_t res = 0;
-
+    write_log("Read on fd=%d", fd);
     if (fd == connection_socket && res > 0) {
         write_log( "Buffer Read on connection=%d,len=%zd, contents=%s\n", fd,  count, ((char *)buf));
         res = buffer_read(buf, count);

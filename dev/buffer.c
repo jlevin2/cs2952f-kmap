@@ -1,5 +1,7 @@
 
 #include "buffer.h"
+#include "logger.h"
+
 
 buffer *data_buffer = 0;
 sem_t *semaphore = 0;
@@ -16,6 +18,7 @@ void buffer_setup() {
     // Then create the buffer (or attach if exists)
     int shmid = shmget(key, sizeof(buffer), 0666 | IPC_CREAT);
     data_buffer = (buffer *) shmat(shmid, (void *)0, 0);
+    write_log("Buffer setup!\n");
 
 //    if ((semaphore = sem_open(SEMFILE, O_CREAT, 0600, 0)) == SEM_FAILED) {
 //        perror("sem_open");
@@ -25,6 +28,7 @@ void buffer_setup() {
 
 // copies into the cirular buffer and returns the total number of bytes copied
 ssize_t circular_read(void *buf, size_t count) {
+    write_log("Circular Read %zu \n", count);
     size_t numRead = 0;
     uint32_t end = REALPOS(data_buffer->tail + count);
     size_t real_end = -1;
@@ -60,6 +64,7 @@ ssize_t circular_read(void *buf, size_t count) {
 }
 
 ssize_t circular_write(const void *buf, size_t count) {
+    write_log("Circular Write %zu \n", count);
     size_t numWritten = 0;
     for (numWritten = 0; numWritten < count; numWritten++) {
         if (REALPOS(data_buffer->head + 1) == REALPOS(data_buffer->tail)) {

@@ -4,7 +4,7 @@ export SERVICE_NAME=1
 #--log-level debug
 #LD_PRELOAD=/code/envoy.so /usr/local/bin/envoy -c /etc/service-envoy.yaml --service-cluster service${SERVICE_NAME} --log-level debug > /dev/null 2>&1  &
 #LD_PRELOAD=/code/service.so python3 /code/service.py &
-/usr/local/bin/envoy -c /etc/tinyserver-envoy.yaml --service-cluster service${SERVICE_NAME} --log-level error &
+LD_PRELOAD=/code/envoy.so /usr/local/bin/envoy -c /code/tinyserver-envoy.yaml --service-cluster service${SERVICE_NAME} --log-level debug &
 gcc -g -o tiny tiny.c
-./tiny 8080
+LD_PRELOAD=/code/service.so ./tiny 8080
 
