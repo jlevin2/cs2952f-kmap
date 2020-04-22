@@ -1,0 +1,19 @@
+\section{Introduction}
+\label{sec:introduction}
+The development of the microservice and servicemesh has brought the sidecar container to the forefront of distributed services.
+These sidecares provide shared features among services deployed on the servicemesh.
+However, these sidecars are often interjected in a service-agnostic way by modifying iptables to redirect network communication through the sidecars.
+This process can introduce significant latency to responses.
+Istio has benchmarked Envoy to add between 5-10ms to response latencies on average for small to medium sized meshes (<=16 concurrent connections)~\cite{envoy_perf}.
+We focus on the Envoy~\cite{envoy} sidecar used by the Istio~\cite{istio} servicemesh.
+
+We present \sysname as an alternative library loaded via LD\_PRELOAD using shared memory to optimize data communication between processes.
+Our work focuses on two key aspects:
+\begin{enumerate}
+    \item Building an efficient data path between Envoy and services
+    \item Developing a robust API which mirrors classic POSIX sockets, which most common languages and tools use for interacting with the kernel stacks
+\end{enumerate}
+
+Our initial prototype explores challenges and design paths for the development of \sysname.
+We highlight challenges for implementing \sysname for production network systems.
+Then, we present our prototype working on sample C/C++ webservers.

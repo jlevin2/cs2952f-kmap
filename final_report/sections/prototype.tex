@@ -1,0 +1,79 @@
+\section{Prototype}
+\label{sec:prototype}
+Here, we discuss our current prototype, challenges, and target applications.
+Currently we compile a single shared object (\{envoy,service\}.so) for each side using compiler flags.
+It is imperative we intercept syscalls on each side, knowing which side of communication the library is running on to determine which network calls to intercept.
+Our library is written in C and is approximately 400 lines of code.
+
+\subsection{\sysname Buffer}
+Our implementation of \sysname buffer follows the producer/consumer model.
+We map a shared structure which includes directional buffers.
+We synchronize access using semaphores between the two processes.
+This is critical as both applications need blocking and non-blocking, as well as signal-based calls to determine when new data has arrived.
+
+% Used by prototype
+\begin{table}[!ht]
+    \begin{center}
+        \resizebox{0.5\columnwidth}{!}{
+            \begin{tabular}{ |c|c|c|}
+                \hline
+                \textbf{Function} & \textbf{Envoy} & \textbf{Service} \\
+                \hline \hline
+                socket & X & X \\ \hline
+                connect & X &  \\ \hline
+                listen &  & X \\ \hline
+                accept &  & X \\ \hline
+                poll &  & X \\ \hline
+                select &  & X \\ \hline
+                send &  & X \\ \hline
+                sendto &  & X \\ \hline
+                sendfile &  & X \\ \hline
+                write & X & X \\ \hline
+                read & X & X \\ \hline
+                writev & X &  \\ \hline
+                readv & X &  \\ \hline
+            \end{tabular}
+        }
+        \caption{Library Functions Linked (HTTP/Flask only)}
+        \label{t:libraries}
+    \end{center}
+\end{table}
+
+\begin{table}[!ht]
+    \begin{center}
+        \resizebox{0.5\columnwidth}{!}{
+            \begin{tabular}{ |c|c|c|}
+                \hline
+                \textbf{Function} & \textbf{Envoy} & \textbf{Service} \\
+                \hline \hline
+                socket & X & X \\ \hline
+                connect & X &  \\ \hline
+                listen &  & X \\ \hline
+                accept &  & X \\ \hline
+                write & X & X \\ \hline
+                read & X & X \\ \hline
+                writev & X &  \\ \hline
+                readv & X &  \\ \hline
+            \end{tabular}
+        }
+        \caption{Library Functions Linked (Tiny C Webserver only)}
+        \label{t:libraries_cserver}
+    \end{center}
+\end{table}
+
+\subsection{\sysname Network Calls}
+The most challenging of \sysname's design is properly intercepting and replicating the behavior of network system calls.
+This aspect is especially challenging because Envoy uses unique handlers for request types (UDP, TCP, HTTP\{1,2,3\}, gRPC, Quic).
+Further, the service itself may use the network stack in obtuse ways.
+Our investigation of Flask~\cite{flask} has revealed a number of idiosyncrasies with how Flask uses the network stack.
+To make \sysname generalizable, you would truly have to intercept very single network call (or possible network related).
+This task is enourmous.
+For our prototype we have focused on HTTP.
+In Table-\ref{t:libraries}, we show the calls on each side we intend to link to use \sysname for flask.
+Currently our prototype is geared for the tiny C server (Table-\ref{t:libraries_cserver}).
+
+
+\subsection{\sysname Status}
+We have found tracing the call paths and stack for the networking calls of the C web server and flask tremendously difficult.
+As of now we do not have a functional prototype for results.
+
