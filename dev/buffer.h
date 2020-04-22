@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
 #include <sys/uio.h>
@@ -13,10 +14,14 @@
 #include <sys/syscall.h>
 #include <assert.h>
 
-#define BFILE "kmapHellYea"
-#define BID 69
+#define SERVBUF "/SERVBUF"
+#define SID 69
 
-#define SEMFILE "virtualsem"
+#define ENVBUF "/ENVBUF"
+#define EID 420
+
+#define ENV2SERV "/ENV2SERV"
+#define SERV2ENV "/SERV2ENV"
 
 // Currently 2^16 byte buffer
 #define BUFSIZE 65536
@@ -42,6 +47,8 @@ ssize_t buffer_write(const void *buf, size_t count);
 ssize_t buffer_readv(const struct iovec *iov, int iovcnt);
 
 ssize_t buffer_writev(const struct iovec *iov, int iovcnt);
+
+int buffer_ready();
 
 
 #endif //CS2952F_KMAP_BUFFER_H

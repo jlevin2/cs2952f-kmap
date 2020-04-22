@@ -137,8 +137,8 @@ int main(int argc, char **argv) {
             error("ERROR on fdopen");
 
         /* get the HTTP request line */
-        fgets(buf, BUFSIZE, stream);
-        printf("%s", buf);
+//        fgets(buf, BUFSIZE, stream);
+        read(childfd, buf, BUFSIZE);
         sscanf(buf, "%s %s %s\n", method, uri, version);
 
         /* tiny only supports the GET method */
@@ -151,12 +151,13 @@ int main(int argc, char **argv) {
         }
 
         /* read (and ignore) the HTTP headers */
-        fgets(buf, BUFSIZE, stream);
-        printf("%s", buf);
-        while (strcmp(buf, "\r\n")) {
-            fgets(buf, BUFSIZE, stream);
-            printf("%s", buf);
-        }
+//        fgets(buf, BUFSIZE, stream);
+//        read(childfd, buf, BUFSIZE);
+//        printf("%s", buf);
+//        while (strcmp(buf, "\r\n")) {
+//            fgets(buf, BUFSIZE, stream);
+//            printf("%s", buf);
+//        }
 
         /* parse the uri [crufty] */
         if (!strstr(uri, "cgi-bin")) { /* static content */
