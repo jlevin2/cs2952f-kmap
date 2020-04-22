@@ -17,11 +17,11 @@ all: run
 
 # Compile with ENVOY FLAG SET
 envoy: $(TARGET).c $(FIFO).c
-	$(CC) $(CFLAGS) -D ENVOY $(TARGET).c $(FIFO).c -o envoy.so -ldl
+	$(CC) $(CFLAGS) -D ENVOY $(TARGET).c $(FIFO).c -o envoy.so -ldl -lpthread
 
 # Compile with SERVICE FLAG SET
 service: $(TARGET).c $(FIFO).c
-	$(CC) $(CFLAGS) -D SERVICE $(TARGET).c $(FIFO).c -o service.so -ldl
+	$(CC) $(CFLAGS) -D SERVICE $(TARGET).c $(FIFO).c -o service.so -ldl -lpthread
 
 debug: $(TARGET).c $(FIFO).c
 	$(CC) $(CFLAGS) $(DEBUG) -D ENVOY $(TARGET).c $(FIFO).c -o envoy.so -ldl

@@ -177,6 +177,7 @@ ssize_t read(int fd, void *buf, size_t count) {
     if (fd == connection_socket) {
         res = buffer_read(buf, count);
         write_log( "Buffer Read return %zu \n", res);
+//        res = real_read(fd, buf, count);
     } else {
         res = real_read(fd, buf, count);
     }
@@ -200,6 +201,7 @@ ssize_t writev(int fildes, const struct iovec *iov, int iovcnt) {
     }
     if (fildes == connection_socket) {
         resp = buffer_writev(iov, iovcnt);
+//        resp = real_writev(iov, iovcnt);
     } else {
         resp = real_writev(fildes, iov, iovcnt);
     }
@@ -224,9 +226,12 @@ ssize_t readv(int fd, const struct iovec *iov, int iovcnt) {
     }
     if (fd == connection_socket) {
         resp = buffer_readv(iov, iovcnt);
-//        write_log( "BUFFER READV returned %zu\n", resp);
+        write_log( "BUFFER READV returned %zu\n", resp);
 //        resp = real_readv(fd, iov, iovcnt);
 //        write_log( "REAL READV returned %zu\n", resp);
+//        for (int i = 0; i < iovcnt; i++) {
+//            write_log("READV %s\n", iov[i].iov_base)
+//        }
     } else {
         resp = real_readv(fd, iov, iovcnt);
     }
@@ -333,53 +338,6 @@ ssize_t sendto(int socket, const void *buffer, size_t length, int flags,
         write_log( "SERVICE REAL SENDTO TARGET CONNECTION resp=%zu\n", ret);
     } else {
         ret = real_sendto(socket, buffer, length, flags, dest_addr, dest_len);
-    }
-
-    return ret;
-}
-
-
-/*
- * Intercept the epoll_ctl and set the associated epoll fd...
- */
-typedef int (*epoll_ctl_t)(int epfd, int op, int fd, struct epoll_event *event);
-epoll_ctl_t real_epoll_ctl;
-int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event) {
-    if (fd == connection_socket)
-        epoll_fd = epfd;
-
-    real_epoll_ctl = dlsym(RTLD_NEXT, "epoll_ctl");
-    return real_epoll_ctl(epfd, op, fd, event);
-}
-
-
-typedef int (*epoll_wait_t)(int epfd, struct epoll_event *events,
-                       int maxevents, int timeout);
-epoll_wait_t real_epoll_wait;
-int epoll_wait(int epfd, struct epoll_event *events,
-               int maxevents, int timeout) {
-    real_epoll_wait = dlsym(RTLD_NEXT, "epoll_wait");
-    int ret = real_epoll_wait(epfd, events, maxevents, timeout);
-
-    // our local socket is included in this...
-    if (epfd == epoll_fd) {
-        /* Then we loop through and see if the file is included already */
-
-//        int i;
-//
-//        for (i = 0; i < ret; i++) {
-//            if (events[i].data.fd != connection_socket) {
-//                continue;
-//            } else { // this indicates connection socket is ready to be read from...
-//                goto DONE;
-//            }
-//        }
-//
-//        if (i < maxevents && buffer_ready()) { // we can write a bit more...
-//            events[i].data.fd = connection_socket;
-//            events[i].events |= EPOLLIN;
-//            ret++;
-//        }
     }
 
     return ret;

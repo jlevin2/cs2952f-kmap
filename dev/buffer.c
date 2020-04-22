@@ -31,11 +31,35 @@ void buffer_setup() {
     key_t key1 = ftok(SERVBUF, SID);
     // Then create the buffer (or attach if exists)
     int shmid = shmget(key1, sizeof(servwritebuf), 0666 | IPC_CREAT);
+
+    if (shmid < 0) {
+        perror("shmget");
+        exit(1);
+    }
+
     servwritebuf = (buffer *) shmat(shmid, (void *)0, 0);
 
+    if (servwritebuf == (buffer *)-1) {
+        perror("shmat");
+        exit(1);
+    }
+
     key_t key2 = ftok(ENVBUF, EID);
-    shmid = shmget(key2, sizeof(envwritebuf), 066 | IPC_CREAT);
+    shmid = shmget(key2, sizeof(envwritebuf), 0666 | IPC_CREAT);
+
+    if (shmid < 0) {
+        perror("shmget");
+        exit(1);
+    }
+
     envwritebuf = (buffer *) shmat(shmid, (void *)0, 0);
+
+    if (envwritebuf == (buffer *)-1) {
+        perror("shmat");
+        exit(1);
+    }
+
+
     write_log("Buffer setup!\n");
 
     if ((env2serv = sem_open(ENV2SERV, O_CREAT, 0600, 0)) == SEM_FAILED) {
@@ -92,8 +116,8 @@ ssize_t circular_read(void *buf, size_t count) {
         }
     }
 
-    assert(real_end >= 0 && real_end < BUFSIZE && "EMPTY BUFFER -- SEMAPHORE FAILURE!");
-    readbuf->tail = real_end;
+    if (real_end >= 0)
+        readbuf->tail = real_end;
 
     return numRead;
 }
@@ -134,6 +158,7 @@ ssize_t buffer_write(const void *buf, size_t count) {
 
 ssize_t buffer_readv(const struct iovec *iov, int iovcnt) {
     buffer_setup();
+
     sem_wait(readfrom);
     ssize_t numRead = 0;
 
@@ -163,8 +188,8 @@ ssize_t buffer_writev(const struct iovec *iov, int iovcnt) {
             return numWritten;
         }
     }
-
-    sem_post(writeto);
+    if (numWritten)
+        sem_post(writeto);
     return numWritten;
 }
 

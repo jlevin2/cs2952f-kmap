@@ -1,6 +1,7 @@
 #!/bin/sh
 export SERVICE_NAME=1
 #gdb --args env
+./cleanup.sh
 kill -9 `pgrep tiny`
 kill -9 `pgrep envoy`
 #--log-level debug
