@@ -14,7 +14,6 @@ buffer *writebuf;
 sem_t *readfrom;
 sem_t *writeto;
 
-
 // Ok, so here's the deal,
 // WE ASSUME that the envoy library always creates this first--
 // Thus, ifdef ENVOY, create the buffer
@@ -37,7 +36,7 @@ void buffer_setup() {
         exit(1);
     }
 
-    servwritebuf = (buffer *) shmat(shmid, (void *)0, 0);
+    servwritebuf = (buffer *)shmat(shmid, (void *)0, 0);
 
     if (servwritebuf == (buffer *)-1) {
         perror("shmat");
@@ -52,13 +51,12 @@ void buffer_setup() {
         exit(1);
     }
 
-    envwritebuf = (buffer *) shmat(shmid, (void *)0, 0);
+    envwritebuf = (buffer *)shmat(shmid, (void *)0, 0);
 
     if (envwritebuf == (buffer *)-1) {
         perror("shmat");
         exit(1);
     }
-
 
     write_log("Buffer setup!\n");
 
@@ -131,10 +129,11 @@ ssize_t circular_write(const void *buf, size_t count) {
             // FULL,
             return numWritten;
         }
-        writebuf->data[REALPOS(writebuf->head + 1)] = ((char *) buf)[numWritten];
+        writebuf->data[REALPOS(writebuf->head + 1)] = ((char *)buf)[numWritten];
         writebuf->head = REALPOS(writebuf->head + 1);
     }
-    write_log("The buffer looks like this: %s\n", writebuf->data + writebuf->tail);
+    write_log("The buffer looks like this: %s\n",
+              writebuf->data + writebuf->tail);
     write_log("Wrote %d bytes into the shared buffer\n", numWritten);
     return numWritten;
 }
@@ -146,7 +145,6 @@ ssize_t buffer_read(void *buf, size_t count) {
     return circular_read(buf, count);
 }
 
-
 // WRITE TO data_buffer from buf
 ssize_t buffer_write(const void *buf, size_t count) {
     buffer_setup();
@@ -154,7 +152,6 @@ ssize_t buffer_write(const void *buf, size_t count) {
     sem_post(writeto);
     return ret;
 }
-
 
 ssize_t buffer_readv(const struct iovec *iov, int iovcnt) {
     buffer_setup();
@@ -174,7 +171,6 @@ ssize_t buffer_readv(const struct iovec *iov, int iovcnt) {
     return numRead;
 }
 
-
 ssize_t buffer_writev(const struct iovec *iov, int iovcnt) {
     buffer_setup();
     ssize_t numWritten = 0;
@@ -193,9 +189,8 @@ ssize_t buffer_writev(const struct iovec *iov, int iovcnt) {
     return numWritten;
 }
 
-
 // returns 1 if the buffer is ready to read, 0 otherwise
-int buffer_ready(){
+int buffer_ready() {
     if (!readfrom)
         return 0;
 
@@ -203,4 +198,3 @@ int buffer_ready(){
     int ret = sem_getvalue(readfrom, &val);
     return ret ? 0 : (val > 0);
 }
-
