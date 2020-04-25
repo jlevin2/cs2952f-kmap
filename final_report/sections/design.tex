@@ -48,6 +48,22 @@ Shared memory is concretely faster than pipes and the primary API \sysname uses 
 Shared memory has been benchmarked to be 170 times faster than TCP sockets for communicating information between processes~\cite{ipcperf}.
 However, shared memory does not directly provide a buffer interface like TCP, ans so \sysname must implement that as part of its library.
 
+\subsection{Dual Pipes}
+Since \sysname mirrors the network stack for two unique clients, Envoy and the service, we must implement two circular buffers.
+These buffers are unidirectional, providing read/write direction for each service.
+A core function of the POSIX network stack is blocking write and reads using syscalls like \textit{select} and \textit{epoll}.
+As such, we use have a dedicated semaphore for each buffer, implementing a variant of the producer-consumer problem.
+We display these aspects of \sysname in Figure-\ref{fig:closeup}
+
+
+\begin{figure}[!htb]
+    \begin{minipage}{0.5\textwidth}
+        \centering
+        \includegraphics[keepaspectratio=true,width=3in]{figures/design/kmap_closeup.png}
+        \caption{Kmap Design}
+        \label{fig:closeup}
+    \end{minipage}%
+\end{figure}
 
 \subsection{When to apply \sysname}
 The network stack has a very well defined, robust API commonly called POSIX sockets.

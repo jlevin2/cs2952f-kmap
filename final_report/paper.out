@@ -3,9 +3,10 @@
 \BOOKMARK [1][-]{section.3}{Kmap}{}% 3
 \BOOKMARK [2][-]{subsection.3.1}{LD Preload}{section.3}% 4
 \BOOKMARK [2][-]{subsection.3.2}{Pipe options}{section.3}% 5
-\BOOKMARK [2][-]{subsection.3.3}{When to apply Kmap}{section.3}% 6
-\BOOKMARK [1][-]{section.4}{Prototype}{}% 7
-\BOOKMARK [2][-]{subsection.4.1}{Kmap Buffer}{section.4}% 8
-\BOOKMARK [2][-]{subsection.4.2}{Kmap Network Calls}{section.4}% 9
-\BOOKMARK [2][-]{subsection.4.3}{Kmap Status}{section.4}% 10
-\BOOKMARK [1][-]{section.5}{Related Work}{}% 11
+\BOOKMARK [2][-]{subsection.3.3}{Dual Pipes}{section.3}% 6
+\BOOKMARK [2][-]{subsection.3.4}{When to apply Kmap}{section.3}% 7
+\BOOKMARK [1][-]{section.4}{Prototype}{}% 8
+\BOOKMARK [2][-]{subsection.4.1}{Kmap Buffer}{section.4}% 9
+\BOOKMARK [2][-]{subsection.4.2}{Kmap Network Calls}{section.4}% 10
+\BOOKMARK [2][-]{subsection.4.3}{Kmap Status}{section.4}% 11
+\BOOKMARK [1][-]{section.5}{Related Work}{}% 12
