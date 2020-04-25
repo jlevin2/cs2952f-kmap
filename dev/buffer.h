@@ -21,7 +21,6 @@
 
 // Currently 2^16 byte buffer
 #define BUFSIZE 65536
-// #define BUFSIZE 1024
 
 #ifndef CS2952F_KMAP_BUFFER_H
 #define CS2952F_KMAP_BUFFER_H
@@ -47,7 +46,3 @@ ssize_t buffer_writev(const struct iovec *iov, int iovcnt);
 int buffer_ready();
 
 #endif // CS2952F_KMAP_BUFFER_H
-
-// Buffer setup
-// 0 ...... back xxxxxxx front .......END
-//

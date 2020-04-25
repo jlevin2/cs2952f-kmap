@@ -23,12 +23,15 @@ envoy: $(TARGET).c $(FIFO).c
 service: $(TARGET).c $(FIFO).c
 	$(CC) $(CFLAGS) -D SERVICE $(TARGET).c $(FIFO).c -o service.so -ldl -lrt
 
+tiny: tiny.c
+	gcc -D SERVICE -g -o tiny tiny.c -lrt
+
 debug: $(TARGET).c $(FIFO).c
 	$(CC) $(CFLAGS) $(DEBUG) -D ENVOY $(TARGET).c $(FIFO).c -o envoy.so -ldl -lrt
 	$(CC) $(CFLAGS) $(DEBUG) -D SERVICE $(TARGET).c $(FIFO).c -o service.so -ldl -lrt
 
-run: clean envoy service
+run: clean envoy service tiny
 	./start_static_service.sh
 
 clean:
-	$(RM) envoy.so service.so library.so shared.so
+	$(RM) envoy.so service.so library.so shared.so tiny

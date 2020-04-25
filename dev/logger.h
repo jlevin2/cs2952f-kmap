@@ -11,11 +11,9 @@
 // #define write_log(format, args...)
 #define write_log(format, args...)                                             \
     fprintf(stderr, "[ENV] " RED format RESET, ##args);
-//#define PRINTF(...) printf(BLU __VA_ARGS__ RESET)
 #endif
 
 #ifdef SERVICE
 #define write_log(format, args...)                                             \
     fprintf(stderr, "[SER] " BLU format RESET, ##args);
-//#define PRINTF(...) printf(MAG __VA_ARGS__ RESET)
 #endif

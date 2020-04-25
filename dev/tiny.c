@@ -123,17 +123,6 @@ int main(int argc, char **argv) {
         if (childfd < 0)
             error("ERROR on accept");
 
-        //        /* determine who sent the message */
-        //        hostp = gethostbyaddr((const char
-        //        *)&clientaddr.sin_addr.s_addr,
-        //                              sizeof(clientaddr.sin_addr.s_addr),
-        //                              AF_INET);
-        //        if (hostp == NULL)
-        //            error("ERROR on gethostbyaddr");
-        //        hostaddrp = inet_ntoa(clientaddr.sin_addr.s_addr);
-        //        if (hostaddrp == NULL)
-        //            error("ERROR on inet_ntoa\n");
-
         /* open the child socket descriptor as a stream */
         if ((stream = fdopen(childfd, "r+")) == NULL)
             error("ERROR on fdopen");
@@ -151,15 +140,6 @@ int main(int argc, char **argv) {
             close(childfd);
             continue;
         }
-
-        /* read (and ignore) the HTTP headers */
-        //        fgets(buf, BUFSIZE, stream);
-        //        read(childfd, buf, BUFSIZE);
-        //        printf("%s", buf);
-        //        while (strcmp(buf, "\r\n")) {
-        //            fgets(buf, BUFSIZE, stream);
-        //            printf("%s", buf);
-        //        }
 
         /* parse the uri [crufty] */
         if (!strstr(uri, "cgi-bin")) { /* static content */
@@ -202,13 +182,6 @@ int main(int argc, char **argv) {
             else
                 strcpy(filetype, "text/plain");
 
-            /* print response header */
-            //            fprintf(stream, "HTTP/1.1 200 OK\n");
-            //            fprintf(stream, "Server: Tiny Web Server\n");
-            //            fprintf(stream, "Content-length: %d\n",
-            //            (int)sbuf.st_size); fprintf(stream, "Content-type:
-            //            %s\n", filetype); fprintf(stream, "\r\n");
-            //            fflush(stream);
             memset(response, 0, sizeof(char) * BUFSIZE);
             sprintf(response, "HTTP/1.1 200 OK\n");
             sprintf(response + strlen(response), "Server: Tiny Web Server\n");
@@ -222,13 +195,9 @@ int main(int argc, char **argv) {
             /* Use mmap to return arbitrary-sized response body */
             fd = open(filename, O_RDONLY);
             p = mmap(0, sbuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-            //            fwrite(p, 1, sbuf.st_size, stream);
             write(childfd, p, sbuf.st_size);
             munmap(p, sbuf.st_size);
-        }
-
-        /* serve dynamic content */
-        else {
+        } else { /* serve dynamic content */
             /* make sure file is a regular executable file */
             if (!(S_IFREG & sbuf.st_mode) || !(S_IXUSR & sbuf.st_mode)) {
                 cerror(stream, filename, "403", "Forbidden",
@@ -260,7 +229,7 @@ int main(int argc, char **argv) {
                 close(0);         /* close stdin */
                 dup2(childfd, 1); /* map socket to stdout */
                 dup2(childfd, 2); /* map socket to stderr */
-                if (execve(filename, NULL, environ) < 0) {
+                if (execve(filename, (char *[]){0}, environ) < 0) {
                     perror("ERROR in execve");
                 }
             }

@@ -14,9 +14,7 @@ sem_t *writeto;
 // Thus, ifdef ENVOY, create the buffer
 // ifdef SERVICE, find the buffer
 void buffer_setup() {
-
-    write_log("Buffer setup!\n");
-
+    write_log("Starting buffer setup\n");
     buffer *servwritebuf;
     buffer *envwritebuf;
     sem_t *env2serv;
@@ -31,6 +29,8 @@ void buffer_setup() {
     }
 
     int fd;
+
+    write_log("Opening 1\n");
 
     /* Open physical memory */
     fd = shm_open(SERVBUF, O_CREAT | O_RDWR, 0777);
@@ -53,6 +53,8 @@ void buffer_setup() {
         perror("mmap");
         exit(1);
     }
+
+    write_log("Opening 2\n");
 
     /* Open physical memory */
     fd = shm_open(ENVBUF, O_CREAT | O_RDWR, 0777);
@@ -79,15 +81,21 @@ void buffer_setup() {
     memset(envwritebuf, 0, sizeof(buffer));
 #endif
 
-    if ((env2serv = sem_open(ENV2SERV, O_CREAT, 0600, 0)) == SEM_FAILED) {
+    write_log("Opening 3\n");
+
+    if ((env2serv = sem_open(ENV2SERV, O_CREAT | O_RDWR, 0600, 0)) ==
+        SEM_FAILED) {
         perror("sem_open");
         exit(1);
     }
 
-    if ((serv2env = sem_open(SERV2ENV, O_CREAT, 0600, 0)) == SEM_FAILED) {
+    if ((serv2env = sem_open(SERV2ENV, O_CREAT | O_RDWR, 0600, 0)) ==
+        SEM_FAILED) {
         perror("sem_open");
         exit(1);
     }
+
+    write_log("Opening 4\n");
 
 #ifdef SERVICE
     readbuf = envwritebuf;
@@ -100,6 +108,7 @@ void buffer_setup() {
     readfrom = serv2env;
     writeto = env2serv;
 #endif
+    write_log("Buffer setup complete!\n");
 }
 
 // copies into the cirular buffer and returns the total number of bytes copied
@@ -165,22 +174,18 @@ ssize_t circular_write(const void *buf, size_t count) {
 
 // READ OUT FROM data_buffer into buf
 ssize_t buffer_read(void *buf, size_t count) {
-    buffer_setup();
     sem_wait(readfrom);
     return circular_read(buf, count);
 }
 
 // WRITE TO data_buffer from buf
 ssize_t buffer_write(const void *buf, size_t count) {
-    buffer_setup();
     ssize_t ret = circular_write(buf, count);
     sem_post(writeto);
     return ret;
 }
 
 ssize_t buffer_readv(const struct iovec *iov, int iovcnt) {
-    buffer_setup();
-
     sem_wait(readfrom);
     ssize_t numRead = 0;
 
@@ -193,11 +198,11 @@ ssize_t buffer_readv(const struct iovec *iov, int iovcnt) {
             return numRead;
         }
     }
+
     return numRead;
 }
 
 ssize_t buffer_writev(const struct iovec *iov, int iovcnt) {
-    buffer_setup();
     ssize_t numWritten = 0;
 
     for (int i = 0; i < iovcnt; i++) {
@@ -209,8 +214,10 @@ ssize_t buffer_writev(const struct iovec *iov, int iovcnt) {
             return numWritten;
         }
     }
+
     if (numWritten)
         sem_post(writeto);
+
     return numWritten;
 }
 

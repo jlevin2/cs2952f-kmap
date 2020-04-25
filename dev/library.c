@@ -26,7 +26,6 @@
 
 // UNIVERSAL
 int connection_socket = 0;
-int epoll_fd = -1;
 
 int segfault() {
     int *ptr = NULL;
@@ -42,6 +41,7 @@ typedef int (*accept_t)(int socket, struct sockaddr *restrict address,
 accept_t real_accept;
 int accept(int socket, struct sockaddr *restrict address,
            socklen_t *restrict address_len) {
+    buffer_setup();
     real_accept = dlsym(RTLD_NEXT, "accept");
 
     struct sockaddr_in *myaddr = (struct sockaddr_in *)address;
@@ -67,12 +67,15 @@ typedef int (*connect_t)(int sockfd, const struct sockaddr *addr,
                          socklen_t addrlen);
 connect_t real_connect;
 int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
+    write_log("Connecting...\n");
     buffer_setup();
-
+    write_log("Done setting up\n");
     // Helper to load the real library mapping for use
     if (!real_connect) {
         real_connect = dlsym(RTLD_NEXT, "connect");
     }
+
+    write_log("About to call real_connect\n");
 
     int resp = real_connect(sockfd, addr, addrlen);
     struct sockaddr_in *myaddr = (struct sockaddr_in *)addr;
@@ -105,27 +108,6 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
 
     return resp;
 }
-
-typedef int (*socket_t)(int domain, int type, int protocol);
-socket_t real_socket;
-int socket(int domain, int type, int protocol) {
-    buffer_setup();
-
-    real_socket = dlsym(RTLD_NEXT, "socket");
-
-    int ret = real_socket(domain, type, protocol);
-
-    if (domain == AF_UNIX || domain == AF_LOCAL) {
-//        connection_socket = ret;
-#ifdef SERVICE
-        write_log("LOCAL SOCKET and returning %d\n", ret);
-#else
-        write_log("LOCAL SOCKET and returning %d\n", ret);
-#endif
-    }
-
-    return ret;
-}
 #endif
 
 // General function wrappers around read/write
@@ -135,23 +117,11 @@ ssize_t write(int fd, const void *buf, size_t count) {
     if (!real_write) {
         real_write = dlsym(RTLD_NEXT, "write");
     }
-#ifdef ENVOY
-    if (fd == 5 || fd == 6 || fd == connection_socket)
-        write_log("Buffer write on connection=%d,len=%zd, contents=%s\n", fd,
-                  count, ((char *)buf));
-#else
-    write_log("Buffer write on connection=%d,len=%zd, contents=%s\n", fd, count,
-              ((char *)buf));
-#endif
 
-    //    write_log("Write on fd=%d\n", fd);
     ssize_t res = 0;
     if (fd == connection_socket && count > 0) {
         res = buffer_write(buf, count);
         write_log("Buffer write returned %zu\n", res);
-        //        real_write(fd, "s", 1);
-        //        res = real_write(fd, buf, count);
-        //        write_log( "REAL write return %zu \n", res);
     } else {
         res = real_write(fd, buf, count);
     }
@@ -164,21 +134,11 @@ ssize_t read(int fd, void *buf, size_t count) {
     if (!real_read) {
         real_read = dlsym(RTLD_NEXT, "read");
     }
-#ifdef ENVOY
-    if (fd == 5 || fd == 6 || fd == connection_socket)
-        write_log("Buffer Read on connection=%d,len=%zd, contents=%s\n", fd,
-                  count, ((char *)buf));
-#else
-    write_log("Buffer Read on connection=%d,len=%zd, contents=%s\n", fd, count,
-              ((char *)buf));
-#endif
 
     ssize_t res = 0;
-    //    write_log("Read on fd=%d\n", fd);
     if (fd == connection_socket) {
         res = buffer_read(buf, count);
         write_log("Buffer Read return %zu \n", res);
-        //        res = real_read(fd, buf, count);
     } else {
         res = real_read(fd, buf, count);
     }
@@ -190,19 +150,11 @@ writev_t real_writev;
 ssize_t writev(int fildes, const struct iovec *iov, int iovcnt) {
     ssize_t resp;
 
-#ifdef ENVOY
-    if (fildes == 5 || fildes == 6 || fildes == connection_socket)
-        write_log("BUFFER WRITEV on connection FD=%d\n", fildes);
-#else
-    write_log("BUFFER WRITEV on connection FD=%d\n", fildes);
-#endif
-
     if (!real_writev) {
         real_writev = dlsym(RTLD_NEXT, "writev");
     }
     if (fildes == connection_socket) {
         resp = buffer_writev(iov, iovcnt);
-        //        resp = real_writev(iov, iovcnt);
     } else {
         resp = real_writev(fildes, iov, iovcnt);
     }
@@ -215,24 +167,15 @@ readv_t real_readv;
 ssize_t readv(int fd, const struct iovec *iov, int iovcnt) {
     ssize_t resp;
 
-#ifdef ENVOY
-    if (fd == 5 || fd == 6 || fd == connection_socket)
-        write_log("BUFFER READV on connection FD=%d\n", fd);
-#else
-    write_log("BUFFER READV on connection FD=%d\n", fd);
-#endif
-
     if (!real_readv) {
         real_readv = dlsym(RTLD_NEXT, "readv");
     }
     if (fd == connection_socket) {
         resp = buffer_readv(iov, iovcnt);
         write_log("BUFFER READV returned %zu\n", resp);
-        //        resp = real_readv(fd, iov, iovcnt);
-        //        write_log( "REAL READV returned %zu\n", resp);
-        //        for (int i = 0; i < iovcnt; i++) {
-        //            write_log("READV %s\n", iov[i].iov_base)
-        //        }
+        if (resp == 0) {
+            write_log("-----------------------------------------\n");
+        }
     } else {
         resp = real_readv(fd, iov, iovcnt);
     }
@@ -314,8 +257,6 @@ ssize_t send(int socket, const void *buffer, size_t length, int flags) {
         ret = buffer_write(buffer, length);
         write_log("SERVICE send buffer write on TARGET CONNECTION resp=%zu\n",
                   ret);
-        ret = real_send(socket, buffer, length, flags);
-        write_log("SERVICE REAL SEND TARGET CONNECTION resp=%zu\n", ret);
     } else {
         ret = real_send(socket, buffer, length, flags);
     }
@@ -341,8 +282,6 @@ ssize_t sendto(int socket, const void *buffer, size_t length, int flags,
         write_log("SERVICE sento on TARGET CONNECTION FD=%d\n", socket);
         ret = buffer_write(buffer, length);
         write_log("SERVICE buffer write on TARGET CONNECTION resp=%zu\n", ret);
-        ret = real_sendto(socket, buffer, length, flags, dest_addr, dest_len);
-        write_log("SERVICE REAL SENDTO TARGET CONNECTION resp=%zu\n", ret);
     } else {
         ret = real_sendto(socket, buffer, length, flags, dest_addr, dest_len);
     }
@@ -358,13 +297,19 @@ int epoll_wait(int epfd, struct epoll_event *events, int maxevents,
     real_epoll_wait = dlsym(RTLD_NEXT, "epoll_wait");
     int ret = real_epoll_wait(epfd, events, maxevents, timeout);
 
-    if (ret) {
-        for (int i = 0; i < ret; i++) {
-            if (events[i].data.fd == connection_socket) {
-                write_log("fd %d is ready\n", events[i].data.fd);
-                write_log("fd is ready for events %u\n", events[i].events);
-            }
-        }
+    // assume connection_socket is not in the events
+    int conn = 1;
+
+    for (int i = 0; i < ret; i++) {
+        if (events[i].data.fd == connection_socket)
+            conn = 0;
+    }
+
+    if (buffer_ready() && conn) { /* If the buffer is ready */
+        events[ret].data.fd = connection_socket;
+        events[ret].events = 5;
+        ret++;
+        write_log("Manually modifying the entries in epoll_wait\n");
     }
 
     return ret;
