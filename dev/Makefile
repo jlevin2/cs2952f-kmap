@@ -17,15 +17,15 @@ all: run
 
 # Compile with ENVOY FLAG SET
 envoy: $(TARGET).c $(FIFO).c
-	$(CC) $(CFLAGS) -D ENVOY $(TARGET).c $(FIFO).c -o envoy.so -ldl -lpthread
+	$(CC) $(CFLAGS) -D ENVOY $(TARGET).c $(FIFO).c -o envoy.so -ldl -lrt
 
 # Compile with SERVICE FLAG SET
 service: $(TARGET).c $(FIFO).c
-	$(CC) $(CFLAGS) -D SERVICE $(TARGET).c $(FIFO).c -o service.so -ldl -lpthread
+	$(CC) $(CFLAGS) -D SERVICE $(TARGET).c $(FIFO).c -o service.so -ldl -lrt
 
 debug: $(TARGET).c $(FIFO).c
-	$(CC) $(CFLAGS) $(DEBUG) -D ENVOY $(TARGET).c $(FIFO).c -o envoy.so -ldl
-	$(CC) $(CFLAGS) $(DEBUG) -D SERVICE $(TARGET).c $(FIFO).c -o service.so -ldl
+	$(CC) $(CFLAGS) $(DEBUG) -D ENVOY $(TARGET).c $(FIFO).c -o envoy.so -ldl -lrt
+	$(CC) $(CFLAGS) $(DEBUG) -D SERVICE $(TARGET).c $(FIFO).c -o service.so -ldl -lrt
 
 run: clean envoy service
 	./start_static_service.sh

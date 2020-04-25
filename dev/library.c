@@ -350,6 +350,26 @@ ssize_t sendto(int socket, const void *buffer, size_t length, int flags,
     return ret;
 }
 
+typedef int (*epoll_wait_t)(int epfd, struct epoll_event *events, int maxevents,
+                            int timeout);
+epoll_wait_t real_epoll_wait;
+int epoll_wait(int epfd, struct epoll_event *events, int maxevents,
+               int timeout) {
+    real_epoll_wait = dlsym(RTLD_NEXT, "epoll_wait");
+    int ret = real_epoll_wait(epfd, events, maxevents, timeout);
+
+    if (ret) {
+        for (int i = 0; i < ret; i++) {
+            if (events[i].data.fd == connection_socket) {
+                write_log("fd %d is ready\n", events[i].data.fd);
+                write_log("fd is ready for events %u\n", events[i].events);
+            }
+        }
+    }
+
+    return ret;
+}
+
 // DEBUGGING , use make debug to compile library with these functions
 #ifdef DEBUG
 typedef int (*socket_t)(int domain, int type, int protocol);

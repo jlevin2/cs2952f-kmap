@@ -3,11 +3,6 @@
 #include "logger.h"
 
 // global variables
-buffer *servwritebuf;
-buffer *envwritebuf;
-
-sem_t *env2serv;
-sem_t *serv2env;
 
 buffer *readbuf;
 buffer *writebuf;
@@ -19,6 +14,14 @@ sem_t *writeto;
 // Thus, ifdef ENVOY, create the buffer
 // ifdef SERVICE, find the buffer
 void buffer_setup() {
+
+    write_log("Buffer setup!\n");
+
+    buffer *servwritebuf;
+    buffer *envwritebuf;
+    sem_t *env2serv;
+    sem_t *serv2env;
+
     if (readbuf || writebuf || readfrom || writeto) {
         assert(readbuf);
         assert(writebuf);
@@ -27,38 +30,54 @@ void buffer_setup() {
         return;
     }
 
-    key_t key1 = ftok(SERVBUF, SID);
-    // Then create the buffer (or attach if exists)
-    int shmid = shmget(key1, sizeof(servwritebuf), 0666 | IPC_CREAT);
+    int fd;
 
-    if (shmid < 0) {
-        perror("shmget");
+    /* Open physical memory */
+    fd = shm_open(SERVBUF, O_CREAT | O_RDWR, 0777);
+
+    if (fd == -1) {
+        perror("shm_open");
         exit(1);
     }
 
-    servwritebuf = (buffer *)shmat(shmid, (void *)0, 0);
-
-    if (servwritebuf == (buffer *)-1) {
-        perror("shmat");
+    if (ftruncate(fd, sizeof(buffer)) == -1) {
+        perror("ftruncate");
         exit(1);
     }
 
-    key_t key2 = ftok(ENVBUF, EID);
-    shmid = shmget(key2, sizeof(envwritebuf), 0666 | IPC_CREAT);
+    /* Map BIOS ROM */
+    servwritebuf =
+        mmap(0, sizeof(buffer), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 
-    if (shmid < 0) {
-        perror("shmget");
+    if (servwritebuf == (void *)-1) {
+        perror("mmap");
         exit(1);
     }
 
-    envwritebuf = (buffer *)shmat(shmid, (void *)0, 0);
-
-    if (envwritebuf == (buffer *)-1) {
-        perror("shmat");
+    /* Open physical memory */
+    fd = shm_open(ENVBUF, O_CREAT | O_RDWR, 0777);
+    if (fd == -1) {
+        perror("shm_open");
         exit(1);
     }
 
-    write_log("Buffer setup!\n");
+    if (ftruncate(fd, sizeof(buffer)) == -1) {
+        perror("ftruncate");
+        exit(1);
+    }
+
+    /* Map BIOS ROM */
+    envwritebuf =
+        mmap(0, sizeof(buffer), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if (envwritebuf == (void *)-1) {
+        perror("mmap");
+        exit(1);
+    }
+
+#ifdef ENVOY
+    memset(servwritebuf, 0, sizeof(buffer));
+    memset(envwritebuf, 0, sizeof(buffer));
+#endif
 
     if ((env2serv = sem_open(ENV2SERV, O_CREAT, 0600, 0)) == SEM_FAILED) {
         perror("sem_open");
@@ -85,7 +104,8 @@ void buffer_setup() {
 
 // copies into the cirular buffer and returns the total number of bytes copied
 ssize_t circular_read(void *buf, size_t count) {
-    write_log("Circular Read %zu \n", count);
+    write_log("Before cirular read\nHead: %u\nTail: %u\n", readbuf->head,
+              readbuf->tail);
     size_t numRead = 0;
     uint32_t end = REALPOS(readbuf->tail + count);
     size_t real_end = -1;
@@ -100,7 +120,7 @@ ssize_t circular_read(void *buf, size_t count) {
         // x represents bytes to be copied -- two copies may be needed.
         if (end > readbuf->head) {
             real_end = end;
-            numRead = end - real_end;
+            numRead = end - readbuf->tail;
             memcpy(buf, readbuf->data + readbuf->tail, numRead);
         } else {
             real_end = end < readbuf->head ? end : readbuf->head;
@@ -110,31 +130,36 @@ ssize_t circular_read(void *buf, size_t count) {
             numRead = p1 + p2;
 
             memcpy(buf, readbuf->data + readbuf->tail, p1);
-            memcpy(buf + p1, readbuf->data + readbuf->tail + p1, p2);
+            memcpy(buf + p1, readbuf->data, p2);
         }
+    } else {
+        return 0;
     }
 
     if (real_end >= 0)
         readbuf->tail = real_end;
 
+    write_log("After cirular read\nHead: %u\nTail: %u\n", readbuf->head,
+              readbuf->tail);
+
     return numRead;
 }
 
 ssize_t circular_write(const void *buf, size_t count) {
-    write_log("Circular Write %zu \n", count);
-    write_log("Circular Write content: \n\n%s\n", (char *)buf);
+    write_log("Before cirular write\nHead: %u\nTail: %u\n", writebuf->head,
+              writebuf->tail);
+
     size_t numWritten = 0;
     for (numWritten = 0; numWritten < count; numWritten++) {
         if (REALPOS(writebuf->head + 1) == REALPOS(writebuf->tail)) {
             // FULL,
             return numWritten;
         }
-        writebuf->data[REALPOS(writebuf->head + 1)] = ((char *)buf)[numWritten];
+        writebuf->data[writebuf->head] = ((char *)buf)[numWritten];
         writebuf->head = REALPOS(writebuf->head + 1);
     }
-    write_log("The buffer looks like this: %s\n",
-              writebuf->data + writebuf->tail);
-    write_log("Wrote %d bytes into the shared buffer\n", numWritten);
+    write_log("After cirular write\nHead: %u\nTail: %u\n", writebuf->head,
+              writebuf->tail);
     return numWritten;
 }
 

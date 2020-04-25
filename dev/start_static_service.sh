@@ -8,6 +8,6 @@ kill -9 `pgrep envoy`
 #LD_PRELOAD=/code/envoy.so /usr/local/bin/envoy -c /etc/service-envoy.yaml --service-cluster service${SERVICE_NAME} --log-level debug > /dev/null 2>&1  &
 #LD_PRELOAD=/code/service.so python3 /code/service.py &
 rm tiny
-gcc -D SERVICE -g -o tiny tiny.c
+gcc -D SERVICE -g -o tiny tiny.c -lrt
 LD_PRELOAD=/code/service.so ./tiny 8080 &
 LD_PRELOAD=/code/envoy.so /usr/local/bin/envoy -c /code/tinyserver-envoy.yaml --service-cluster service${SERVICE_NAME} &
