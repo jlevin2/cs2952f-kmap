@@ -4,7 +4,7 @@
 3. Run `sudo docker attach kmap`, which will bring up a shell for you.
 
 If you want to mount the volume to compile/work
-docker run -itd --privileged -P -v /Users/JoshLevin/Desktop/college/current/cs2952f/cs2952f-kmap/kmap:/code --name kmap envoy
+`docker run -itd --privileged -P -v /Users/JoshLevin/Desktop/college/current/cs2952f/cs2952f-kmap/kmap:/code --name kmap envoy`
 
 The outer world will send the TCP traffic to port 80, which envoy will then handle accordingly
 
