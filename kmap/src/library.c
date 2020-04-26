@@ -81,7 +81,7 @@ __attribute__((constructor)) static void setup(void) {
     write_log("Buffer setting up!\n");
 #ifdef SERVICE
     real_accept = dlsym(RTLD_NEXT, "accept");
-    sleep(2);
+    sleep(1);
 #else
     real_connect = dlsym(RTLD_NEXT, "connect");
 #endif
