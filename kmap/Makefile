@@ -15,14 +15,14 @@ all: run
 
 # Compile with ENVOY FLAG SET
 envoy: $(TARGET)
-	$(CC) $(CFLAGS) -D ENVOY $(TARGET) -o envoy.so $(LIBFLAGS)
+	$(CC) $(CFLAGS) -O3 -D ENVOY $(TARGET) -o envoy.so $(LIBFLAGS)
 
 # Compile with SERVICE FLAG SET
 service: $(TARGET)
-	$(CC) $(CFLAGS) -D SERVICE $(TARGET) -o service.so $(LIBFLAGS)
+	$(CC) $(CFLAGS) -O3 -D SERVICE $(TARGET) -o service.so $(LIBFLAGS)
 
 tiny: tiny.c
-	gcc -D SERVICE -g -o tiny tiny.c -lrt
+	gcc -D SERVICE -g -O3 -o tiny tiny.c -lrt
 
 debug: $(TARGET).c $(FIFO).c
 	$(CC) $(CFLAGS) $(DEBUG) -D ENVOY $(TARGET).c $(FIFO).c -o envoy.so -ldl -lrt
