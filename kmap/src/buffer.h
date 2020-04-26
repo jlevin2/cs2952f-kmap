@@ -16,8 +16,11 @@
 #define SERVBUF "/SERVBUF"
 #define ENVBUF "/ENVBUF"
 
-#define ENV2SERV "/ENV2SERV"
-#define SERV2ENV "/SERV2ENV"
+#define ENV2SERVEMPTY "/ENV2SERVEMTPY"
+#define ENV2SERVFULL "/ENV2SERVFULL"
+
+#define SERV2ENVEMPTY "/SERV2ENVEMPTY"
+#define SERV2ENVFULL "/SERV2ENVFULL"
 
 // Currently 2^16 byte buffer
 #define BUFSIZE 65536
@@ -33,6 +36,10 @@ typedef struct {
     uint32_t head;
     uint32_t tail;
     char data[BUFSIZE];
+
+    sem_t empty; // number of slots empty
+    sem_t full;  // number of slots filled
+
 } buffer;
 
 void buffer_setup();

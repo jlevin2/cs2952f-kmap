@@ -41,7 +41,7 @@ typedef int (*accept_t)(int socket, struct sockaddr *restrict address,
 accept_t real_accept;
 int accept(int socket, struct sockaddr *restrict address,
            socklen_t *restrict address_len) {
-//    buffer_setup();
+
     real_accept = dlsym(RTLD_NEXT, "accept");
 
     struct sockaddr_in *myaddr = (struct sockaddr_in *)address;
@@ -110,9 +110,9 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
 
 __attribute__((constructor)) static void setup(void) {
     write_log("Buffer setting up!\n");
-    #ifdef SERVICE
+#ifdef SERVICE
     sleep(2);
-    #endif
+#endif
     buffer_setup();
     write_log("Done setting up\n");
 }
@@ -190,7 +190,6 @@ ssize_t readv(int fd, const struct iovec *iov, int iovcnt) {
     return resp;
 }
 
-
 typedef int (*epoll_wait_t)(int epfd, struct epoll_event *events, int maxevents,
                             int timeout);
 epoll_wait_t real_epoll_wait;
@@ -207,12 +206,12 @@ int epoll_wait(int epfd, struct epoll_event *events, int maxevents,
             conn = 0;
     }
 
-    if (buffer_ready() && conn) { /* If the buffer is ready */
-        events[ret].data.fd = connection_socket;
-        events[ret].events = 5;
-        ret++;
-        write_log("Manually modifying the entries in epoll_wait\n");
-    }
+    // if (buffer_ready() && conn) { /* If the buffer is ready */
+    //     events[ret].data.fd = connection_socket;
+    //     events[ret].events = 5;
+    //     ret++;
+    //     // write_log("Manually modifying the entries in epoll_wait\n");
+    // }
 
     return ret;
 }
