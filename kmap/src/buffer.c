@@ -232,7 +232,7 @@ ssize_t circular_write(const void *buf, size_t count) {
     pthread_mutex_lock(&writebuf->buf_lock);
 
     size_t numWritten = 0;
-    uint32_t last_pos = REALPOS(writebuf->tail - 1);
+    uint32_t last_pos;
 
     // if (writebuf->head == last_pos) {
     //     // FULL
@@ -240,7 +240,7 @@ ssize_t circular_write(const void *buf, size_t count) {
     //     pthread_cond_wait(&writebuf->waiting, &writebuf->buf_lock);
     // }
 
-    while (writebuf->head == last_pos)
+    while ((last_pos = REALPOS(writebuf->tail - 1)) == writebuf->head)
         pthread_cond_wait(&writebuf->waiting, &writebuf->buf_lock);
 
     // sem_wait(&writebuf->empty);
