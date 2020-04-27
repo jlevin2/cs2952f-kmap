@@ -154,14 +154,18 @@ ssize_t circular_read(void *buf, size_t count) {
     // LOCK BUFFER
     pthread_mutex_lock(&readbuf->buf_lock);
 
-    if (readbuf->tail == readbuf->head) {
-        // BLOCKING READ so wait on waiting
-        write_log("READER waiting on signal\n");
-        write_log("READER waiting on cond address %p \n", (void *) &readbuf->waiting);
-        pthread_cond_wait(&readbuf->waiting, &readbuf->buf_lock);
-        write_log("READER woke from signal\n");
-    }
+    // if (readbuf->tail == readbuf->head) {
+    //     // BLOCKING READ so wait on waiting
+    //     write_log("READER waiting on signal\n");
+    //     write_log("READER waiting on cond address %p \n", (void *)
+    //     &readbuf->waiting); while(readbuf)
+    //     pthread_cond_wait(&readbuf->waiting, &readbuf->buf_lock);
+    //     write_log("READER woke from signal\n");
+    // }
     // sem_wait(&readbuf->full);
+
+    while (readbuf->tail == readbuf->head)
+        pthread_cond_wait(&readbuf->waiting, &readbuf->buf_lock);
 
     // size_t numRead = 0;
     uint32_t end = REALPOS(readbuf->tail + count);
@@ -206,7 +210,8 @@ ssize_t circular_read(void *buf, size_t count) {
 }
 
 ssize_t circular_write(const void *buf, size_t count) {
-     write_log("Before circular write: Head: %u Tail: %u\n", writebuf->head, writebuf->tail);
+    write_log("Before circular write: Head: %u Tail: %u\n", writebuf->head,
+              writebuf->tail);
 
     // size_t numWritten = 0;
     // for (numWritten = 0; numWritten < count; numWritten++) {
@@ -229,11 +234,14 @@ ssize_t circular_write(const void *buf, size_t count) {
     size_t numWritten = 0;
     uint32_t last_pos = REALPOS(writebuf->tail - 1);
 
-    if (writebuf->head == last_pos) {
-        // FULL
-        write_log("WRITER blocking, waiting on room\n");
+    // if (writebuf->head == last_pos) {
+    //     // FULL
+    //     write_log("WRITER blocking, waiting on room\n");
+    //     pthread_cond_wait(&writebuf->waiting, &writebuf->buf_lock);
+    // }
+
+    while (writebuf->head == last_pos)
         pthread_cond_wait(&writebuf->waiting, &writebuf->buf_lock);
-    }
 
     // sem_wait(&writebuf->empty);
 
@@ -271,12 +279,14 @@ ssize_t circular_write(const void *buf, size_t count) {
     }
     // Signal any readers
     write_log("circular write about to signal\n");
-    write_log("circular signaling on cond address %p \n", (void *) &writebuf->waiting);
+    write_log("circular signaling on cond address %p \n",
+              (void *)&writebuf->waiting);
     pthread_cond_signal(&writebuf->waiting);
     write_log("circular write about to unlock\n");
     pthread_mutex_unlock(&writebuf->buf_lock);
 
-    write_log("After circular write: Head: %u Tail: %u\n", writebuf->head, writebuf->tail);
+    write_log("After circular write: Head: %u Tail: %u\n", writebuf->head,
+              writebuf->tail);
 
     return numWritten;
 }
