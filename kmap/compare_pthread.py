@@ -17,12 +17,12 @@ FILESIZE = [
 fig, ax = plt.subplots(ncols=len(FILES),figsize=(10,5))
 
 for i,f in enumerate(FILES):
-    default = pd.read_csv("results/default/{}/default.csv".format(f))
-    kmap = pd.read_csv("results/24_w_pthread/{}/kmap.csv".format(f))
+    before = pd.read_csv("results/24Buffer/{}/kmap.csv".format(f))
+    pthread = pd.read_csv("results/24_w_pthread/{}/kmap.csv".format(f))
 
     merged = pd.DataFrame()
-    merged['kmap'] = kmap['Times']
-    merged['sys'] = default['Times']
+    merged['before'] = before['Times']
+    merged['pthread'] = pthread['Times']
 
     bplot = ax[i].boxplot(x=merged.values, showfliers=False, notch=False, widths=0.5, patch_artist=True)
     bplot['boxes'][0].set_facecolor('grey')
@@ -44,7 +44,7 @@ for i,f in enumerate(FILES):
 
     ax[i].set_title('File Size: ' + FILESIZE[i])
     ax[i].legend([bplot["boxes"][0], bplot["boxes"][1]],
-          ['Kmap', 'Sys'], loc='upper right', fontsize=12, markerscale=5.0)
+          ['Before', 'Pthread'], loc='upper right', fontsize=12, markerscale=5.0)
 
 
-plt.savefig('results.png', dpi=300, bbox_inches = 'tight',pad_inches = 0)
+plt.savefig('compare.png', dpi=300, bbox_inches = 'tight',pad_inches = 0)

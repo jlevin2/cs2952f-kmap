@@ -24,9 +24,9 @@
 #define SERV2ENVFULL "/SERV2ENVFULL"
 
 // Currently 2^16 byte buffer
-#define BUFSIZE 65536
+//#define BUFSIZE 65536
 // 2^26 i.e. 67 MB
-//#define BUFSIZE 16777216
+#define BUFSIZE 16777216
 
 #ifndef CS2952F_KMAP_BUFFER_H
 #define CS2952F_KMAP_BUFFER_H
