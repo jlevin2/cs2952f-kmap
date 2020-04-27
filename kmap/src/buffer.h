@@ -12,6 +12,7 @@
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #define SERVBUF "/SERVBUF"
 #define ENVBUF "/ENVBUF"
@@ -39,6 +40,11 @@ typedef struct {
 
     sem_t empty; // number of slots empty
     sem_t full;  // number of slots filled
+
+    // Sync access
+    pthread_mutex_t buf_lock;
+    pthread_cond_t waiting;
+//    pthread_cond_t wake_writer;
 
 } buffer;
 

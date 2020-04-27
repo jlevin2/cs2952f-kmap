@@ -91,6 +91,35 @@ void buffer_setup() {
         exit(1);
     }
 
+    // INIT PTHREAD CONSTRUCTS
+    pthread_mutexattr_t attrmutex;
+    pthread_mutexattr_init(&attrmutex);
+    pthread_mutexattr_setpshared(&attrmutex, PTHREAD_PROCESS_SHARED);
+
+    if (pthread_mutex_init(&servwritebuf->buf_lock, &attrmutex) != 0) {
+        printf("\n mutex init has failed\n");
+        return 1;
+    }
+
+    if (pthread_mutex_init(&envwritebuf->buf_lock, &attrmutex) != 0) {
+        printf("\n mutex init has failed\n");
+        return 1;
+    }
+
+    pthread_condattr_t attrcond;
+    pthread_condattr_init(&attrcond);
+    pthread_condattr_setpshared(&attrcond, PTHREAD_PROCESS_SHARED);
+
+    if (pthread_cond_init(&envwritebuf->waiting, &attrcond) != 0) {
+        perror("pthread_cond_init() error");
+        exit(1);
+    }
+
+    if (pthread_cond_init(&servwritebuf->waiting, &attrcond) != 0) {
+        perror("pthread_cond_init() error");
+        exit(1);
+    }
+
 #ifdef SERVICE
     readbuf = envwritebuf;
     writebuf = servwritebuf;
@@ -104,7 +133,8 @@ void buffer_setup() {
 
 // copies into the cirular buffer and returns the total number of bytes copied
 ssize_t circular_read(void *buf, size_t count) {
-    // // write_log("Starting readv\n");
+    write_log("Before circular read: Head: %u Tail: %u\n", readbuf->head,
+              readbuf->tail);
 
     // // TODO, make this not byte wise (use like memcpy)
     // for (numRead = 0; numRead < count; numRead++) {
@@ -121,9 +151,15 @@ ssize_t circular_read(void *buf, size_t count) {
     // return numRead;
     size_t numRead = 0;
 
+    // LOCK BUFFER
+    pthread_mutex_lock(&readbuf->buf_lock);
+
     if (readbuf->tail == readbuf->head) {
-        // Nothing else to read
-        return numRead;
+        // BLOCKING READ so wait on waiting
+        write_log("READER waiting on signal\n");
+        write_log("READER waiting on cond address %p \n", (void *) &readbuf->waiting);
+        pthread_cond_wait(&readbuf->waiting, &readbuf->buf_lock);
+        write_log("READER woke from signal\n");
     }
     // sem_wait(&readbuf->full);
 
@@ -159,17 +195,18 @@ ssize_t circular_read(void *buf, size_t count) {
         readbuf->tail = real_end;
         // sem_post(&readbuf->empty);
     }
+    // SIGNAL ANY WRITERS WAITING
+    pthread_cond_signal(&readbuf->waiting);
 
-    write_log("After cirular read\nHead: %u\nTail: %u\n", readbuf->head,
+    pthread_mutex_unlock(&readbuf->buf_lock);
+    write_log("After circular read: Head: %u Tail: %u\n", readbuf->head,
               readbuf->tail);
 
     return numRead;
 }
 
 ssize_t circular_write(const void *buf, size_t count) {
-    // write_log("Before cirular write\nHead: %u\nTail: %u\n",
-    // writebuf->head,
-    //           writebuf->tail);
+     write_log("Before circular write: Head: %u Tail: %u\n", writebuf->head, writebuf->tail);
 
     // size_t numWritten = 0;
     // for (numWritten = 0; numWritten < count; numWritten++) {
@@ -186,12 +223,16 @@ ssize_t circular_write(const void *buf, size_t count) {
     // // write_log("After cirular write\nHead: %u\nTail: %u\n",
     // // writebuf->head, writebuf->tail);
     // return numWritten;
+
+    pthread_mutex_lock(&writebuf->buf_lock);
+
     size_t numWritten = 0;
     uint32_t last_pos = REALPOS(writebuf->tail - 1);
 
     if (writebuf->head == last_pos) {
         // FULL
-        return numWritten;
+        write_log("WRITER blocking, waiting on room\n");
+        pthread_cond_wait(&writebuf->waiting, &writebuf->buf_lock);
     }
 
     // sem_wait(&writebuf->empty);
@@ -228,9 +269,14 @@ ssize_t circular_write(const void *buf, size_t count) {
         writebuf->head = real_end;
         // sem_post(&writebuf->full);
     }
+    // Signal any readers
+    write_log("circular write about to signal\n");
+    write_log("circular signaling on cond address %p \n", (void *) &writebuf->waiting);
+    pthread_cond_signal(&writebuf->waiting);
+    write_log("circular write about to unlock\n");
+    pthread_mutex_unlock(&writebuf->buf_lock);
 
-    write_log("After cirular read\nHead: %u\nTail: %u\n", readbuf->head,
-              readbuf->tail);
+    write_log("After circular write: Head: %u Tail: %u\n", writebuf->head, writebuf->tail);
 
     return numWritten;
 }

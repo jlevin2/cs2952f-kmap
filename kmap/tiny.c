@@ -197,8 +197,14 @@ int main(int argc, char **argv) {
             fd = open(filename, O_RDONLY);
             p = mmap(0, sbuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
             printf("Called mmap with size %zu \n", sbuf.st_size);
-            ssize_t resp = write(childfd, p, sbuf.st_size);
-            printf("Called write returned %zu \n", resp);
+            // LOOP WRITING UNTIL WE WRITE IT ALL
+            ssize_t total = 0;
+            while (total < sbuf.st_size) {
+                ssize_t resp = write(childfd, p, sbuf.st_size);
+                printf("intermediate write returned %zu \n", resp);
+                total += resp;
+            }
+            printf("TOTAL write returned %zu \n", total);
             munmap(p, sbuf.st_size);
         } else { /* serve dynamic content */
             /* make sure file is a regular executable file */

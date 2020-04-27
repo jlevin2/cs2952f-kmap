@@ -7,13 +7,20 @@
 #define WHT "\x1B[37m"
 #define RESET "\x1B[0m"
 
+
+#include <time.h>
+
+struct timespec spec;
+
 #ifdef ENVOY
 // #define write_log(format, args...)
 #define write_log(format, args...)                                             \
-    fprintf(stderr, "[ENV] " RED format RESET, ##args);
+    clock_gettime(CLOCK_REALTIME, &spec); \
+    fprintf(stderr, "[ENV][%lu] " RED format RESET, spec.tv_nsec, ##args);
 #endif
 
 #ifdef SERVICE
 #define write_log(format, args...)                                             \
-    fprintf(stderr, "[SER] " BLU format RESET, ##args);
+    clock_gettime(CLOCK_REALTIME, &spec); \
+    fprintf(stderr, "[SERV][%lu] " BLU format RESET, spec.tv_nsec, ##args);
 #endif
