@@ -1,31 +1,40 @@
 \section{\sysname}
 \label{sec:design}
 Our design for \sysname focus on avoiding costly, unnecessary invocations of the network stack.
+These network calls involve copying of bytes between two processes and kernel context switches.
+Avoiding the extraneous copying and reducing the frequency of context switches should greatly improve data transfer speed.
 Envoy prides itself on being application agnostic, which leads to the helpful ability to auto-inject Envoy into microservices.
-However, this abstract requires unnecessary invocations of the network stack.
+However, this abstraction results in unnecessary invocations of the network stack.
 In Figure-\ref{fig:no_kmap} we highlight in red all the calls to the network stack for the path of a single request.
 Then, in Figure-\ref{fig:kmap} we show the reduction in those calls by using Kmap instead of the network stack for local data transfer.
 
-\sysname works by using LD\_PRELOAD to load augmented network calls before libc regular calls.
-Then, when Envoy and the microservice invoke read or write calls locally, rather than passing the data
-into the network stack, we use \sysname's shared buffers to efficiently transfer the data.
+\sysname works by using LD\_PRELOAD to load \sysname before libc regular calls.
+\sysname contains several functions which match the signature of libc network calls and thus when applications invoke those calls, \sysname's version of those functions is invoked instead of libc.
+Using the \sysname functions, Envoy and the microservice call read and write passing data through userspace rather than passing the data into the network stack, using shared buffers to efficiently transfer the data.
 Thus, we must load the shared library for both the Envoy sidecar and the microservices.
 The two critical challenges to realizing \sysname are:
 \begin{enumerate}
     \item Building a robust, efficient shared buffer system that's \textit{faster} than the network stack
-    \item Determining in a microservice-agnostic way which socket calls should use \sysname
+    \item Determining in a microservice-agnostic way which POSIX network calls should be preloaded by \sysname
 \end{enumerate}
 
-%\begin{figure}[!htb]
-%
-%\end{figure}
+\subsection{Intercepting Network Calls}
+\textbf{Direct libc Modification:}
+One method of implementing \sysname would be to modify libc in environment for Envoy and the service.
+This option, however, would require extensive infrastructure modification to ensuring Envoy and the service each boot with the proper libc version (compiled for them).
+Further, the library change would effect any other process running the in the same environment (container or system) and thus \sysname would have to handle calls from neither Envoy or the service.
 
-\subsection{LD Preload}
+\textbf{LD\_PRELOAD:}
 The Linux LD\_PRELOAD command~\cite{ldpreload} allows users to preload particular libraries ahead of the conventional linker and loader.
 This enables users to load symbols before classic libraries (e.g. libc, syscalls).
-Commonly this is referred to as the "LD\_PRELOAD trick".
+Commonly this is referred to as the "LD\_PRELOAD trick"~\cite{ldtrick}.
+The LD\_PRELOAD command modifies the linking process of the particular process it is attached to, requiring no modification of the default library and not interfering with any other process.
+
+
 For \sysname, we use LD\_PRELOAD to load the \sysname libraries before conventional libraries such as libc.
 Inside each \sysname library we use \textit{dlsym} to load the "real" libc functions we wrap.
+Thus, we can use libc functions in \sysname, passing through most calls, while intercepting and adjusting only the subset relevant to \sysname.
+From a maintainability perspective, this allows libc and \sysname to evolve independently while remaining compatible.
 
 \subsection{Pipe options}
 Here, we outline potential methods for implementing the buffer \sysname uses to pass data between Envoy and the microservice.
@@ -52,7 +61,7 @@ However, shared memory does not directly provide a buffer interface like TCP, an
 Since \sysname mirrors the network stack for two unique clients, Envoy and the service, we must implement two circular buffers.
 These buffers are unidirectional, providing read/write direction for each service.
 A core function of the POSIX network stack is blocking write and reads using syscalls like \textit{select} and \textit{epoll}.
-As such, we use have a dedicated semaphore for each buffer, implementing a variant of the producer-consumer problem.
+As such, we use have dedicated synchronization for each buffer using pthread mutexes and conditional variables.
 We display these aspects of \sysname in Figure-\ref{fig:closeup}
 
 
@@ -69,7 +78,9 @@ We display these aspects of \sysname in Figure-\ref{fig:closeup}
 The network stack has a very well defined, robust API commonly called POSIX sockets.
 A particular challenge for \sysname is pre-loading in front of these network calls and knowing when
 to pass through the call, or when to route to the local buffer.
-Since \sysname is designing primarily for Envoy, we use information about how it communicates with microservices to determine
-which file descriptors should use \sysname.
-This approach is not directly applicable to other sidecars (i.e. Linkerd) but is generalizable for applications, provided the applications work with Envoy first.
+Since \sysname is designing primarily for Envoy, we use information about how it communicates with microservices to determine which file descriptors should use \sysname.
+The Envoy codebase uses unique handlers for different requests (e.g. gRPC, TCP, HTTP 2, HTTP 3, QUIC) and as such \sysname will have to adjust it's structure to match the protocol in use.
+For now the focus of our \sysname prototype, discussed in Section-\ref{sec:prototype} is Envoy's HTTP stack.
+We do not view \sysname as generalizable to other Envoy paths or other tools (e.g. Linkerd) without thorough inspections of the pathways.
+It is likely for \sysname to generalize it would require the tool and path as part of its compilation process.
 

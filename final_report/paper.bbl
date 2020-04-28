@@ -1,8 +1,12 @@
-\begin{thebibliography}{1}
+\begin{thebibliography}{10}
 
 \bibitem{envoy_perf}
 Best practices: Benchmarking service mesh performance.
 \newblock \url{https://istio.io/blog/2019/performance-best-practices/}.
+
+\bibitem{ldtrick}
+Correct usage of ld\_preload for hooking libc functions.
+\newblock \url{https://tbrindus.ca/correct-ld-preload-hooking-libc/}.
 
 \bibitem{envoy}
 Envoy proxy - home.

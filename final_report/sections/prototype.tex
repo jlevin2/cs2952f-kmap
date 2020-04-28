@@ -2,42 +2,41 @@
 \label{sec:prototype}
 Here, we discuss our current prototype, challenges, and target applications.
 Currently we compile a single shared object (\{envoy,service\}.so) for each side using compiler flags.
-It is imperative we intercept syscalls on each side, knowing which side of communication the library is running on to determine which network calls to intercept.
-Our library is written in C and is approximately 400 lines of code.
+It is imperative we intercept syscalls on each side, and as such we must know which side of communication the library is running on to determine which network calls to intercept.
+Our library is written in C and is approximately 800 LOC.
 
 \subsection{\sysname Buffer}
-Our implementation of \sysname buffer follows the producer/consumer model.
-We map a shared structure which includes directional buffers.
-We synchronize access using semaphores between the two processes.
-This is critical as both applications need blocking and non-blocking, as well as signal-based calls to determine when new data has arrived.
+Our implementation of \sysname uses \textit{shm\_open} and \textit{mmap} to map shared buffers across the two processes.
+The buffer structs container a data buffer, head/tail integers, and pthread mutexes and conditional variables for synchronizing access.
+We implemented write/read, and write(v)/read(v) APIs for the buffers since Envoy uses iovec structures for reading and writing.
 
 % Used by prototype
-\begin{table}[!ht]
-    \begin{center}
-        \resizebox{0.5\columnwidth}{!}{
-            \begin{tabular}{ |c|c|c|}
-                \hline
-                \textbf{Function} & \textbf{Envoy} & \textbf{Service} \\
-                \hline \hline
-                socket & X & X \\ \hline
-                connect & X &  \\ \hline
-                listen &  & X \\ \hline
-                accept &  & X \\ \hline
-                poll &  & X \\ \hline
-                select &  & X \\ \hline
-                send &  & X \\ \hline
-                sendto &  & X \\ \hline
-                sendfile &  & X \\ \hline
-                write & X & X \\ \hline
-                read & X & X \\ \hline
-                writev & X &  \\ \hline
-                readv & X &  \\ \hline
-            \end{tabular}
-        }
-        \caption{Library Functions Linked (HTTP/Flask only)}
-        \label{t:libraries}
-    \end{center}
-\end{table}
+%\begin{table}[!ht]
+%    \begin{center}
+%        \resizebox{0.5\columnwidth}{!}{
+%            \begin{tabular}{ |c|c|c|}
+%                \hline
+%                \textbf{Function} & \textbf{Envoy} & \textbf{Service} \\
+%                \hline \hline
+%                socket & X & X \\ \hline
+%                connect & X &  \\ \hline
+%                listen &  & X \\ \hline
+%                accept &  & X \\ \hline
+%                poll &  & X \\ \hline
+%                select &  & X \\ \hline
+%                send &  & X \\ \hline
+%                sendto &  & X \\ \hline
+%                sendfile &  & X \\ \hline
+%                write & X & X \\ \hline
+%                read & X & X \\ \hline
+%                writev & X &  \\ \hline
+%                readv & X &  \\ \hline
+%            \end{tabular}
+%        }
+%        \caption{Library Functions Linked (HTTP/Flask only)}
+%        \label{t:libraries}
+%    \end{center}
+%\end{table}
 
 \begin{table}[!ht]
     \begin{center}
@@ -46,9 +45,7 @@ This is critical as both applications need blocking and non-blocking, as well as
                 \hline
                 \textbf{Function} & \textbf{Envoy} & \textbf{Service} \\
                 \hline \hline
-                socket & X & X \\ \hline
                 connect & X &  \\ \hline
-                listen &  & X \\ \hline
                 accept &  & X \\ \hline
                 write & X & X \\ \hline
                 read & X & X \\ \hline
@@ -56,18 +53,22 @@ This is critical as both applications need blocking and non-blocking, as well as
                 readv & X &  \\ \hline
             \end{tabular}
         }
-        \caption{Library Functions Linked (Tiny C Webserver only)}
+        \caption{Libc Functions Preloaded (Tiny C Webserver)}
         \label{t:libraries_cserver}
     \end{center}
 \end{table}
 
 \subsection{\sysname Network Calls}
-The most challenging of \sysname's design is properly intercepting and replicating the behavior of network system calls.
+The most challenging aspect of \sysname's design is properly intercepting and replicating the behavior of network system calls.
 This aspect is especially challenging because Envoy uses unique handlers for request types (UDP, TCP, HTTP\{1,2,3\}, gRPC, Quic).
 Further, the service itself may use the network stack in obtuse ways.
-Our investigation of Flask~\cite{flask} has revealed a number of idiosyncrasies with how Flask uses the network stack.
-To make \sysname generalizable, you would truly have to intercept very single network call (or possible network related).
-This task is enourmous.
+%Our investigation of Flask~\cite{flask} has revealed a number of idiosyncrasies with how Flask uses the network stack.
+To make \sysname generalizable, one would truly have to intercept every network call (or possible network related).
+This task is enormous.
+Take for example, how services often tack advantage of configurable aspects of the network stack like \textit{setsockopt}.
+Setting options on a particular socket changes the behavior of accept, i/o, and more.
+Thus, for \sysname to properly mirror the POSIX API to services in an agnostic way, it would have to model the entire state diagram for sockets.
+\todo{Here on}
 For our prototype we have focused on HTTP.
 In Table-\ref{t:libraries}, we show the calls on each side we intend to link to use \sysname for flask.
 Currently our prototype is geared for the tiny C server (Table-\ref{t:libraries_cserver}).
@@ -77,3 +78,18 @@ Currently our prototype is geared for the tiny C server (Table-\ref{t:libraries_
 We have found tracing the call paths and stack for the networking calls of the C web server and flask tremendously difficult.
 As of now we do not have a functional prototype for results.
 
+
+\begin{figure*}[!htb]
+    \begin{minipage}{0.5\textwidth}
+        \centering
+        \includegraphics[keepaspectratio=true,width=3in]{figures/evaluation/results.png}
+        \caption{Time to Transfer}
+        \label{fig:results}
+    \end{minipage}%
+    \begin{minipage}{0.5\textwidth}
+        \centering
+        \includegraphics[keepaspectratio=true,width=3in]{figures/evaluation/buf_compare.png}
+        \caption{Comparing \sysname Buffer Sizes}
+        \label{fig:buf}
+    \end{minipage}%
+\end{figure*}
