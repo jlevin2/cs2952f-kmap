@@ -71,26 +71,6 @@ void buffer_setup() {
     memset(envwritebuf, 0, sizeof(buffer));
 #endif
 
-    if (sem_init(&envwritebuf->empty, 1, BUFSIZE)) {
-        perror("sem_init");
-        exit(1);
-    }
-
-    if (sem_init(&envwritebuf->full, 1, 0)) {
-        perror("sem_init");
-        exit(1);
-    }
-
-    if (sem_init(&servwritebuf->empty, 1, BUFSIZE)) {
-        perror("sem_init");
-        exit(1);
-    }
-
-    if (sem_init(&servwritebuf->full, 1, 0)) {
-        perror("sem_init");
-        exit(1);
-    }
-
     // INIT PTHREAD CONSTRUCTS
     pthread_mutexattr_t attrmutex;
     pthread_mutexattr_init(&attrmutex);
@@ -98,12 +78,12 @@ void buffer_setup() {
 
     if (pthread_mutex_init(&servwritebuf->buf_lock, &attrmutex) != 0) {
         printf("\n mutex init has failed\n");
-        return 1;
+        exit(1);
     }
 
     if (pthread_mutex_init(&envwritebuf->buf_lock, &attrmutex) != 0) {
         printf("\n mutex init has failed\n");
-        return 1;
+        exit(1);
     }
 
     pthread_condattr_t attrcond;
@@ -136,33 +116,10 @@ ssize_t circular_read(void *buf, size_t count) {
     write_log("Before circular read: Head: %u Tail: %u\n", readbuf->head,
               readbuf->tail);
 
-    // // TODO, make this not byte wise (use like memcpy)
-    // for (numRead = 0; numRead < count; numRead++) {
-    //     if (readbuf->tail == readbuf->head) {
-    //         // Nothing else to read
-    //         return numRead;
-    //     }
-    //     sem_wait(&readbuf->full);
-    //     ((char *)buf)[numRead] = readbuf->data[readbuf->tail];
-    //     readbuf->tail = REALPOS(readbuf->tail + 1);
-    //     sem_post(&readbuf->empty);
-    // }
-    //
-    // return numRead;
     size_t numRead = 0;
 
     // LOCK BUFFER
     pthread_mutex_lock(&readbuf->buf_lock);
-
-    // if (readbuf->tail == readbuf->head) {
-    //     // BLOCKING READ so wait on waiting
-    //     write_log("READER waiting on signal\n");
-    //     write_log("READER waiting on cond address %p \n", (void *)
-    //     &readbuf->waiting); while(readbuf)
-    //     pthread_cond_wait(&readbuf->waiting, &readbuf->buf_lock);
-    //     write_log("READER woke from signal\n");
-    // }
-    // sem_wait(&readbuf->full);
 
     while (readbuf->tail == readbuf->head)
         pthread_cond_wait(&readbuf->waiting, &readbuf->buf_lock);
@@ -195,16 +152,15 @@ ssize_t circular_read(void *buf, size_t count) {
         }
     }
 
-    if (real_end >= 0) {
+    if (real_end >= 0)
         readbuf->tail = real_end;
-        // sem_post(&readbuf->empty);
-    }
-    // SIGNAL ANY WRITERS WAITING
-    pthread_cond_signal(&readbuf->waiting);
 
-    pthread_mutex_unlock(&readbuf->buf_lock);
+    // SIGNAL ANY WRITERS WAITING
     write_log("After circular read: Head: %u Tail: %u\n", readbuf->head,
               readbuf->tail);
+
+    pthread_mutex_unlock(&readbuf->buf_lock);
+    pthread_cond_signal(&readbuf->waiting);
 
     return numRead;
 }
@@ -213,37 +169,25 @@ ssize_t circular_write(const void *buf, size_t count) {
     write_log("Before circular write: Head: %u Tail: %u\n", writebuf->head,
               writebuf->tail);
 
-    // size_t numWritten = 0;
-    // for (numWritten = 0; numWritten < count; numWritten++) {
-    //     if (REALPOS(writebuf->head + 1) == writebuf->tail) {
-    //         // FULL,
-    //         return numWritten;
-    //     }
-    //
-    //     sem_wait(&writebuf->empty);
-    //     writebuf->data[writebuf->head] = ((char *)buf)[numWritten];
-    //     writebuf->head = REALPOS(writebuf->head + 1);
-    //     sem_post(&writebuf->full);
-    // }
-    // // write_log("After cirular write\nHead: %u\nTail: %u\n",
-    // // writebuf->head, writebuf->tail);
-    // return numWritten;
-
     pthread_mutex_lock(&writebuf->buf_lock);
 
     size_t numWritten = 0;
     uint32_t last_pos;
 
-    // if (writebuf->head == last_pos) {
-    //     // FULL
-    //     write_log("WRITER blocking, waiting on room\n");
-    //     pthread_cond_wait(&writebuf->waiting, &writebuf->buf_lock);
-    // }
-
     while ((last_pos = REALPOS(writebuf->tail - 1)) == writebuf->head)
         pthread_cond_wait(&writebuf->waiting, &writebuf->buf_lock);
 
-    // sem_wait(&writebuf->empty);
+    uint32_t empty_space;
+
+    if (writebuf->head < last_pos) {
+        empty_space = last_pos - writebuf->head + 1;
+    } else {
+        empty_space = BUFSIZE - (writebuf->head - writebuf->tail + 1);
+    }
+
+    if (empty_space < count) {
+        count = empty_space;
+    }
 
     uint32_t end = REALPOS(writebuf->head + count);
     size_t real_end = -1;
@@ -273,20 +217,21 @@ ssize_t circular_write(const void *buf, size_t count) {
         }
     }
 
-    if (real_end >= 0) {
+    if (real_end >= 0)
         writebuf->head = real_end;
-        // sem_post(&writebuf->full);
-    }
+
     // Signal any readers
     write_log("circular write about to signal\n");
     write_log("circular signaling on cond address %p \n",
               (void *)&writebuf->waiting);
-    pthread_cond_signal(&writebuf->waiting);
+
     write_log("circular write about to unlock\n");
-    pthread_mutex_unlock(&writebuf->buf_lock);
 
     write_log("After circular write: Head: %u Tail: %u\n", writebuf->head,
               writebuf->tail);
+
+    pthread_mutex_unlock(&writebuf->buf_lock);
+    pthread_cond_signal(&writebuf->waiting);
 
     return numWritten;
 }
@@ -310,19 +255,12 @@ ssize_t buffer_readv(const struct iovec *iov, int iovcnt) {
     for (i = 0; i < iovcnt; i++) {
         struct iovec curIovec = iov[i];
         ssize_t amtRead = 0;
-        // write_log("Readv with iovec %d has len %zu \n", i,
-        // curIovec.iov_len);
         amtRead = circular_read(curIovec.iov_base, curIovec.iov_len);
-        // write_log("Readv with iovec %d read amount %zu \n", i, amtRead);
         numRead += amtRead;
         if (amtRead < curIovec.iov_len) {
-            // write_log("Returned Readv after %d iovec \n", i);
-            // POST if there's still data in the buffer:
             break;
         }
     }
-    // write_log("Returned Readv after %d iovec \n", i);
-    // POST if there's still data in the buffer:
 
     return numRead;
 }

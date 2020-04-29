@@ -21,16 +21,10 @@ int connection_socket = 0;
 int accept(int socket, struct sockaddr *restrict address,
            socklen_t *restrict address_len) {
     struct sockaddr_in *myaddr = (struct sockaddr_in *)address;
-    int myPort = ntohs(myaddr->sin_port);
     char ipAddress[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &(myaddr->sin_addr), ipAddress, INET_ADDRSTRLEN);
 
-    // write_log("ACCEPT called sockdf=%d, IP=%s, Port=%d\n", socket, ipAddress,
-    // myPort);
-
     connection_socket = real_accept(socket, address, address_len);
-    // write_log("Accept return on socket %d, setting %d as
-    // connection_socket\n", socket, connection_socket);
 
     return connection_socket;
 }
@@ -40,18 +34,11 @@ int accept(int socket, struct sockaddr *restrict address,
 #define PORT 8080
 
 int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
-    // write_log("Connecting...\n");
-    // Helper to load the real library mapping for use
-    // write_log("About to call real_connect\n");
-
     int resp = real_connect(sockfd, addr, addrlen);
     struct sockaddr_in *myaddr = (struct sockaddr_in *)addr;
     int myPort = ntohs(myaddr->sin_port);
     char ipAddress[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &(myaddr->sin_addr), ipAddress, INET_ADDRSTRLEN);
-
-    // write_log("CONNECT sockfd=%d, IP=%s, Port=%d resp=(%d)\n", sockfd,
-    // ipAddress, myPort, resp);
 
     /*
      * It is possible for connect to return -1. From the man pages:
@@ -69,7 +56,6 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
     }
 
     if (myPort == PORT) {
-        // write_log("CONNECT on target port, connection FD=%d\n", sockfd);
         connection_socket = sockfd;
     }
 
@@ -100,7 +86,6 @@ ssize_t write(int fd, const void *buf, size_t count) {
     ssize_t res = 0;
     if (fd == connection_socket && count > 0) {
         res = buffer_write(buf, count);
-        // write_log("Buffer write returned %zu\n", res);
     } else {
         res = real_write(fd, buf, count);
     }
@@ -111,7 +96,6 @@ ssize_t read(int fd, void *buf, size_t count) {
     ssize_t res = 0;
     if (fd == connection_socket) {
         res = buffer_read(buf, count);
-        // write_log("Buffer Read return %zu \n", res);
     } else {
         res = real_read(fd, buf, count);
     }
