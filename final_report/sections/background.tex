@@ -15,7 +15,6 @@ Istio uses Envoy~\cite{envoy} which is the tool we focus on here for \sysname.
     \end{minipage}%
 \end{figure}
 
-
 \begin{figure*}[!htb]
     \begin{minipage}{0.5\textwidth}
         \centering
@@ -30,6 +29,12 @@ Istio uses Envoy~\cite{envoy} which is the tool we focus on here for \sysname.
         \label{fig:no_kmap}
     \end{minipage}%
 \end{figure*}
+
+%
+%\subsection{Linux Network Stack}
+%To provide better encapsulation of data packets and avoid costly copies, Linux kernel handles packet relay between different network layers via a struct known as \texttt{sk\_buff} (short for socket buffers). Each \texttt{sk\_buff} struct keeps track of pointers to start and end of different frames and, instead of copying the whole network packet between layers, shares the \texttt{sk\_buff} for faster processing of network packets.
+%
+%For Unix domain sockets, however, the network stack need not be invoked. The OS often realizes that the sockets are for local purposes only and will skip some of the
 
 %\begin{figure}[!htb]
 %    \begin{minipage}{0.5\textwidth}

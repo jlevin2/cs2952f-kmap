@@ -73,11 +73,22 @@ For our prototype we have focused on HTTP.
 In Table-\ref{t:libraries}, we show the calls on each side we intend to link to use \sysname for flask.
 Currently our prototype is geared for the tiny C server (Table-\ref{t:libraries_cserver}).
 
+\subsection{Inter-Process Communication}
+The implementation started with named pipe as the main Inter-Process Communication (IPC) mechanism. However, due to its unidirectional nature and difficulty in incorporating synchronization mechanisms, we decided the named pipes will not suffice.
+
+As a solution, we used \texttt{shm\_open(2)} to open a file descriptor associated with a region of shared memory and map it to the process using the \texttt{mmap} syscall. We allocate a circular buffer of size $2^{24}$ bytes in this shared region and read and write from it directly using \texttt{memcpy}. We will discuss our choice of the buffer size and how it affects the performance in later section. We allocate two such buffers to provide communication in each direction.
+
+\subsection{Concurrency Problems}
+The Envoy process will write the outer request to the buffer and read the service response from the buffer; the service process will read the request (passed on by Envoy) and write the response, as returned by the service. We now have a classic producer-consumer problem.
+
+Our first attempt at the solution was semaphore. We allocated two sempahores, each associated with one buffer, for the purpose of waiting and notifying. However, semaphores did not provide a convenient way to guarantee exclusive access to the buffer. This allowed for data races and caused the program to malfunction.
+
+As an improvement, we moved to using mutexes across processes. Each buffer has a mutex associated with it and also a condition variable. We use these two constructs to guarantee mutual exclusion and to solve the consumer-producer problem.
 
 \subsection{\sysname Status}
 We have found tracing the call paths and stack for the networking calls of the C web server and flask tremendously difficult.
 As of now we do not have a functional prototype for results.
-
+% TODO: We shoud update this for sure...
 
 \begin{figure*}[!htb]
     \begin{minipage}{0.5\textwidth}
