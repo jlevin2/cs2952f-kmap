@@ -3,6 +3,8 @@ Capacity: max_strings=100000, hash_size=100000, hash_prime=85009
 The top-level auxiliary file: paper.aux
 The style file: acm.bst
 Database file #1: paper.bib
+Warning--entry type for "tiny" isn't style-file defined
+--line 82 of file paper.bib
 Warning--to sort, need author or key in envoy_perf
 Warning--to sort, need author or key in envoy
 Warning--to sort, need author or key in istio
@@ -10,45 +12,45 @@ Warning--to sort, need author or key in ldpreload
 Warning--to sort, need author or key in ldtrick
 Warning--to sort, need author or key in ipcperf
 Warning--to sort, need author or key in flask
-You've used 10 entries,
+You've used 11 entries,
             2253 wiz_defined-function locations,
-            568 strings with 5164 characters,
-and the built_in function-call counts, 2504 in all, are:
-= -- 223
-> -- 88
+            572 strings with 5257 characters,
+and the built_in function-call counts, 2712 in all, are:
+= -- 241
+> -- 95
 < -- 0
-+ -- 40
-- -- 30
-* -- 138
-:= -- 327
-add.period$ -- 22
-call.type$ -- 10
-change.case$ -- 44
++ -- 43
+- -- 32
+* -- 145
+:= -- 360
+add.period$ -- 25
+call.type$ -- 11
+change.case$ -- 48
 chr.to.int$ -- 0
-cite$ -- 17
-duplicate$ -- 111
-empty$ -- 264
-format.name$ -- 30
-if$ -- 578
+cite$ -- 18
+duplicate$ -- 119
+empty$ -- 287
+format.name$ -- 32
+if$ -- 623
 int.to.chr$ -- 0
-int.to.str$ -- 10
+int.to.str$ -- 11
 missing$ -- 2
-newline$ -- 45
-num.names$ -- 6
-pop$ -- 114
+newline$ -- 50
+num.names$ -- 8
+pop$ -- 125
 preamble$ -- 1
-purify$ -- 35
+purify$ -- 38
 quote$ -- 0
-skip$ -- 93
+skip$ -- 99
 stack$ -- 0
-substring$ -- 92
-swap$ -- 35
+substring$ -- 97
+swap$ -- 37
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 40
+type$ -- 44
 warning$ -- 7
-while$ -- 9
-width$ -- 12
-write$ -- 81
-(There were 7 warnings)
+while$ -- 11
+width$ -- 13
+write$ -- 90
+(There were 8 warnings)

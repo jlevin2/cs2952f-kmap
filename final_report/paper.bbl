@@ -37,6 +37,11 @@ Ld\_preload documentation.
   Networks\/} (New York, NY, USA, 2017), HotNets-XVI, Association for Computing
   Machinery, p.~65–71.
 
+\bibitem{tiny}
+{\sc O'Hallaron, D.}
+\newblock tiny web server.
+\newblock \url{http://csapp.cs.cmu.edu/2e/ics2/code/netp/tiny/tiny.c}.
+
 \bibitem{envoy_image}
 {\sc Song, J.}
 \newblock \url{https://jimmysong.io/}.
