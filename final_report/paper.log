@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex 2019.5.8)  6 MAY 2020 20:18
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex 2019.5.8)  11 MAY 2020 17:38
 entering extended mode
  \write18 enabled.
  %&-line parsing enabled.
@@ -818,7 +818,7 @@ Package hyperref Warning: Option `draft' has already been used,
 LaTeX Font Info:    Font shape `T1/ptm/bx/n' in size <12> not available
 (Font)              Font shape `T1/ptm/b/n' tried instead on input line 1.
 ) (./sections/background.tex
-<figures/background/envoy.png, id=77, 1507.6325pt x 938.50626pt>
+<figures/background/envoy.png, id=93, 1507.6325pt x 938.50626pt>
 File: figures/background/envoy.png Graphic file (type png)
 <use figures/background/envoy.png>
 Package pdftex.def Info: figures/background/envoy.png  used on input line 12.
@@ -834,12 +834,12 @@ Overfull \hbox (11.9246pt too wide) in paragraph at lines 10--16
 []$[]$ 
  []
 
-<figures/design/kmap.png, id=79, 422.57875pt x 393.97188pt>
+<figures/design/kmap.png, id=95, 422.57875pt x 393.97188pt>
 File: figures/design/kmap.png Graphic file (type png)
 <use figures/design/kmap.png>
 Package pdftex.def Info: figures/design/kmap.png  used on input line 21.
 (pdftex.def)             Requested size: 216.81pt x 202.13731pt.
-<figures/design/no_kmap.png, id=81, 360.34625pt x 334.75063pt>
+<figures/design/no_kmap.png, id=97, 360.34625pt x 334.75063pt>
 File: figures/design/no_kmap.png Graphic file (type png)
 <use figures/design/no_kmap.png>
 Package pdftex.def Info: figures/design/no_kmap.png  used on input line 27.
@@ -857,7 +857,7 @@ Underfull \hbox (badness 8170) in paragraph at lines 27--32
  []
 
 [2 <./figures/design/kmap.png> <./figures/design/no_kmap.png>]
-<figures/design/kmap_closeup.png, id=117, 376.40625pt x 287.0725pt>
+<figures/design/kmap_closeup.png, id=133, 376.40625pt x 287.0725pt>
 File: figures/design/kmap_closeup.png Graphic file (type png)
 <use figures/design/kmap_closeup.png>
 Package pdftex.def Info: figures/design/kmap_closeup.png  used on input line 71
@@ -874,24 +874,35 @@ Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
  [3 <./figures/design/kmap_closeup.png>]
-<figures/evaluation/results.png, id=130, 609.9588pt x 310.5201pt>
-File: figures/evaluation/results.png Graphic file (type png)
-<use figures/evaluation/results.png>
-Package pdftex.def Info: figures/evaluation/results.png  used on input line 75.
+<figures/evaluation/netload.png, id=146, 609.9588pt x 310.5201pt>
+File: figures/evaluation/netload.png Graphic file (type png)
+<use figures/evaluation/netload.png>
+Package pdftex.def Info: figures/evaluation/netload.png  used on input line 75.
 
 (pdftex.def)             Requested size: 216.81pt x 110.37517pt.
-<figures/evaluation/buf_compare.png, id=131, 609.9588pt x 310.5201pt>
+
+Overfull \hbox (11.9246pt too wide) in paragraph at lines 73--79
+[]$[]$ 
+ []
+
+<figures/evaluation/results.png, id=147, 609.9588pt x 310.5201pt>
+File: figures/evaluation/results.png Graphic file (type png)
+<use figures/evaluation/results.png>
+Package pdftex.def Info: figures/evaluation/results.png  used on input line 85.
+
+(pdftex.def)             Requested size: 216.81pt x 110.37517pt.
+<figures/evaluation/buf_compare.png, id=148, 609.9588pt x 310.5201pt>
 File: figures/evaluation/buf_compare.png Graphic file (type png)
 <use figures/evaluation/buf_compare.png>
 Package pdftex.def Info: figures/evaluation/buf_compare.png  used on input line
- 81.
+ 91.
 (pdftex.def)             Requested size: 216.81pt x 110.37517pt.
-)
-(./sections/evaluation.tex
+) (./sections/evaluation.tex
 
 LaTeX Warning: Reference `fig:buffer' on page 4 undefined on input line 20.
 
-) (./sections/related.tex) (./paper.bbl
+) (./sections/related.tex [4 <./figures/evaluation/netload.png>])
+(./sections/discussion.tex) (./paper.bbl
 Underfull \hbox (badness 3977) in paragraph at lines 4--6
 []\T1/ptm/m/n/10 (+20) Best prac-tices: Bench-mark-ing ser-vice mesh per-
  []
@@ -918,7 +929,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 20--23
 \T1/pcr/m/n/10 questions / 1235958 / ipc -[] performance -[] named -[]
  []
 
-[4]
+[5 <./figures/evaluation/results.png> <./figures/evaluation/buf_compare.png>]
 Underfull \hbox (badness 4391) in paragraph at lines 29--31
 []\T1/ptm/m/n/10 (+20) Ld_preload doc-u-men-ta-tion.  [][]$\T1/pcr/m/n/10 http 
 : / / man7 . org /
@@ -932,40 +943,40 @@ Overfull \hbox (1.34828pt too wide) in paragraph at lines 50--57
 
 )
 - LAST -
-Extra skip:34.065pt
-Left:166.0pt/2.16492pt
-Right:134.0pt/0.09991pt
-Output:160.0pt
- [5 <./figures/evaluation/results.png> <./figures/evaluation/buf_compare.png>]
+Extra skip:53.35504pt
+Left:154.0pt/1.45496pt
+Right:102.0pt/0.09991pt
+Output:148.0pt
+ [6]
 Package atveryend Info: Empty hook `BeforeClearDocument' on input line 122.
 Package atveryend Info: Empty hook `AfterLastShipout' on input line 122.
-(./paper.aux)
+ (./paper.aux)
 Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 122.
 Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 122.
 Package rerunfilecheck Info: File `paper.out' has not changed.
-(rerunfilecheck)             Checksum: F031779A745AC81DA7D31BBD99D67D34;925.
+(rerunfilecheck)             Checksum: C4E09C48A70BE1E589F8D7E5AE75FF4E;1169.
 
 
 LaTeX Warning: There were undefined references.
 
  ) 
 Here is how much of TeX's memory you used:
- 18814 strings out of 492616
- 349612 string characters out of 6129482
- 450775 words of memory out of 5000000
- 22135 multiletter control sequences out of 15000+600000
- 58338 words of font info for 193 fonts, out of 8000000 for 9000
+ 18840 strings out of 492616
+ 350030 string characters out of 6129482
+ 449854 words of memory out of 5000000
+ 22145 multiletter control sequences out of 15000+600000
+ 58788 words of font info for 197 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 55i,9n,49p,786b,438s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 55i,9n,49p,786b,442s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2019/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/t
 exlive/2019/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/local/texlive/2
 019/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2019/texmf-
 dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2019/texmf-dist/fonts
 /type1/urw/times/utmri8a.pfb>
-Output written on paper.pdf (5 pages, 867833 bytes).
+Output written on paper.pdf (6 pages, 937905 bytes).
 PDF statistics:
- 198 PDF objects out of 1000 (max. 8388607)
- 174 compressed objects within 2 object streams
- 45 named destinations out of 1000 (max. 500000)
- 37035 words of extra memory for PDF output out of 42996 (max. 10000000)
+ 224 PDF objects out of 1000 (max. 8388607)
+ 197 compressed objects within 2 object streams
+ 51 named destinations out of 1000 (max. 500000)
+ 37072 words of extra memory for PDF output out of 42996 (max. 10000000)
 

@@ -1,2 +1,38 @@
 \section{Discussion}
 \label{sec:discussion}
+Our work in Section-\ref{sec:evaluation} shows \sysname is comparable to the default system in certain circumstances and performs better in a select few.
+Throughout our process, we attempted a number of optimizations which generally did not have much effect.
+We will highlight them here and explain why we view that they were inconsequential.
+We will also discuss future directions and learnings from the project.
+
+\subsection{Optimizing \sysname}
+Our results show the end of a number of improvements we made to \sysname.
+Though no individual improvement significantly adjusted \sysname's performance.
+
+\textbf{Compiler:} Our work began by writing the library with no compiler optimization.
+Compiling with optimization flags of 02 or 03 did not adjust performance much.
+The code base is relatively small and low-level so we did not expect much improvement.
+Nevertheless running compile optimized code is a good practice.
+
+
+\textbf{Copying:} We also experimented with the way we copied bytes.
+Our naive first implementation copied at the byte level in and out of the buffer.
+We improved this by using \textit{memcpy} and even experimented with multithreading \textit{memcpy}.
+In either case, the improvement we saw was minimal, leading us to our cumulative conclusion that the network stack is highly optimized.
+
+\textbf{Unsafe execution:} Another method of optimization we took was to avoid error checking in the main path of function calls.
+By this, we mean that we don't null check or offset check as much as is possible.
+We moved much of our initialization to the library constructor and assume it is run first (start up takes < 1 second).
+The improvement this technique provided was very slight.
+
+Overall, we feel that these optimizations were relatively surface-level.
+By this, we mean that they all improve the way we communicate with our shared memory and the other processes.
+They do not \textit{themselves} optimize shared memory, where we feel is causing the slow-down.
+
+\subsection{Next Steps and Lessons}
+We feel that the work here shows \sysname's promise.
+Further evaluation and exploration are needed to understand under which environments \sysname performs better.
+Further paths (i.e TCP/UDP/gRPC) also may show different results.
+Ultimately, though, we view that this confirms how optimized the network stack is.
+In principle, \sysname should be a streamlined version of the network stack, however, the decades of work built in to the kernel cannot be unappreciated.
+

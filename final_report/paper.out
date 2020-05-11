@@ -13,4 +13,8 @@
 \BOOKMARK [1][-]{section.5}{Evaluation}{}% 13
 \BOOKMARK [2][-]{subsection.5.1}{General Performance}{section.5}% 14
 \BOOKMARK [2][-]{subsection.5.2}{Buffer Size}{section.5}% 15
-\BOOKMARK [1][-]{section.6}{Related Work}{}% 16
+\BOOKMARK [2][-]{subsection.5.3}{Busy Server}{section.5}% 16
+\BOOKMARK [1][-]{section.6}{Related Work}{}% 17
+\BOOKMARK [1][-]{section.7}{Discussion}{}% 18
+\BOOKMARK [2][-]{subsection.7.1}{Optimizing Kmap}{section.7}% 19
+\BOOKMARK [2][-]{subsection.7.2}{Next Steps and Lessons}{section.7}% 20
