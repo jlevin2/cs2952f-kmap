@@ -25,7 +25,7 @@ Our previous two experiments were run in isolation without any other running pro
 For the majority of microservice deployments this is not representative of the typical workload.
 Thus, our next experiment simulates concurrent usage.
 We ran a netcat TCP stream at 5MB/s on the same node as our \sysname test.
-The results are shown in Figure-\ref{fig:netload}.
-From this test we see that \sysname's median response is faster than the default system.
-We view that this reflects that the cost of kernel operations is increased when concurrent other processes are using the network stack as well.
+Our finding is summarized in Figure-\ref{fig:netload}. Although our result shows some fluctuation, which is a problem that certainly should be revisited in the future, the median and minimum both surpassed what the Unix domain sockets achieved.
+The cost of kernel operations is increased when other processes are using the network stack as well, as now the kernel must handle multiple network connections at the same time.
 Further, this test more closely resembles real-world deployment and thus we are optimistic that \sysname's principles remain strong.
+

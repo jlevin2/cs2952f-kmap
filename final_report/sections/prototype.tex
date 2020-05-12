@@ -6,17 +6,17 @@ It is imperative we intercept syscalls on each side, and as such we must know wh
 Our library is written in C and is approximately 800 LOC.
 
 \subsection{\sysname Buffer}
-The implementation started with named pipe as the main Inter-Process Communication (IPC) mechanism.
+The implementation started with named pipe as the main IPC mechanism.
 However, due to its unidirectional nature and difficulty in incorporating synchronization mechanisms, we decided the named pipes will not suffice.
 
-As a solution, we used \texttt{shm\_open(2)} to open a file descriptor associated with a region of shared memory and map it to the process using the \texttt{mmap} syscall. We allocate a circular buffer of size $2^{24}$ bytes in this shared region and read and write from it directly using \texttt{memcpy}. We will discuss our choice of the buffer size and how it affects the performance in later section. We allocate two such buffers to provide communication in each direction.
+As a solution, we used \texttt{shm\_open(2)} to open a file descriptor associated with a region of shared memory and mapped it to the process using the \texttt{mmap} syscall. We allocated a circular buffer of size $2^{24}$ bytes in this shared region and read and write from it directly using \texttt{memcpy}. We will discuss our choice of the buffer size and how it affects the performance in later section. We allocated two such buffers to provide communication in each direction.
 
 \subsection{Concurrency Challenges}
 The Envoy process will write the outer request to the buffer and read the service response from the buffer; the service process will read the request (passed on by Envoy) and write the response, as returned by the service.
 We now have a classic producer-consumer problem.
 
 Our first attempt at the solution was semaphore.
-We allocated two sempahores, each associated with one buffer, for the purpose of waiting and notifying.
+We allocated two semaphores, each associated with one buffer, for the purpose of waiting and notifying.
 However, semaphores did not provide a convenient way to guarantee exclusive access to the buffer.
 This allowed for data races and caused the program to malfunction.
 

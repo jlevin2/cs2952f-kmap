@@ -4,16 +4,23 @@ Recent shifts to microservice architectures and the resulting servicemesh have p
 Microservices deployed on a servicemesh (i.e. Istio~\cite{istio}) use proxies which are co-located with microservices.
 These proxies intercept and control networking communication between services.
 The proxies are relatively lightweight, but use the networking stack for communication with the co-located service (Figure-\ref{fig:no_kmap}).
-They do this to preserve a common interface for services-- the networking stack.
+This is done to preserve a common interface for services-- the networking stack.
 Istio uses Envoy~\cite{envoy} which is the tool we focus on here for \sysname.
-\begin{figure}[!htb]
-    \begin{minipage}{0.5\textwidth}
+
+\subsection{Envoy}
+Via a modified routing table, Envoy intercepts the incoming connections and relays those to the local services (see Figure-\ref{fig:envoy}). 
+The inbound and outbound handlers handle upstream and downstream requests. 
+All the routed requests are passed around using local sockets (e.g. Unix Domain Sockets). 
+When a service is using Envoy, it only needs to specify a local address and a port number that it will be using, and Envoy contacts the local service through that address. 
+
+\begin{figure*}[!htb]
+    \begin{minipage}{\textwidth}
         \centering
-        \includegraphics[keepaspectratio=true,width=3in]{figures/background/envoy.png}
+        \includegraphics[keepaspectratio=true,width=7in]{figures/background/envoy.png}
         \caption{Envoy Network Stack~\cite{envoy_image}}
         \label{fig:envoy}
     \end{minipage}%
-\end{figure}
+\end{figure*}
 
 \begin{figure*}[!htb]
     \begin{minipage}{0.5\textwidth}

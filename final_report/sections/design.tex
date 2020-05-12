@@ -36,8 +36,8 @@ Inside each \sysname library we use \textit{dlsym} to load the "real" libc funct
 Thus, we can use libc functions in \sysname, passing through most calls, while intercepting and adjusting only the subset relevant to \sysname.
 From a maintainability perspective, this allows libc and \sysname to evolve independently while remaining compatible.
 
-\subsection{Pipe options}
-Here, we outline potential methods for implementing the buffer \sysname uses to pass data between Envoy and the microservice.
+\subsection{IPC options}
+Here, we outline potential inter-process communication (IPC) methods for implementing the buffer \sysname uses to pass data between Envoy and the microservice.
 
 \textbf{Named Pipes:}
 Named pipes, (FIFO) are blocking, uni-directional I/O buffers for passing data between two processes.
