@@ -19,6 +19,7 @@
 \citation{envoy_perf}
 \citation{envoy}
 \citation{istio}
+\citation{kmap_source}
 \citation{istio}
 \citation{envoy}
 \citation{envoy_image}
@@ -26,34 +27,34 @@
 \newlabel{sec:introduction}{{1}{1}{Introduction}{section.1}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {2}Background}{1}{section.2}\protected@file@percent }
 \newlabel{sec:background}{{2}{1}{Background}{section.2}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Envoy Network Stack\nobreakspace  {}\cite  {envoy_image}}}{1}{figure.1}\protected@file@percent }
-\newlabel{fig:envoy}{{1}{1}{Envoy Network Stack~\cite {envoy_image}}{figure.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Envoy}{1}{subsection.2.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {3}Kmap\xspace  }{1}{section.3}\protected@file@percent }
 \newlabel{sec:design}{{3}{1}{\sysname }{section.3}{}}
 \citation{ldpreload}
 \citation{ldtrick}
-\citation{ipcperf}
-\citation{ipcperf}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Envoy Network Stack\nobreakspace  {}\cite  {envoy_image}}}{2}{figure.1}\protected@file@percent }
+\newlabel{fig:envoy}{{1}{2}{Envoy Network Stack~\cite {envoy_image}}{figure.1}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Kmap}}{2}{figure.2}\protected@file@percent }
 \newlabel{fig:kmap}{{2}{2}{Kmap}{figure.2}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces No Kmap Envoy Network Stack}}{2}{figure.3}\protected@file@percent }
 \newlabel{fig:no_kmap}{{3}{2}{No Kmap Envoy Network Stack}{figure.3}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Intercepting Network Calls}{2}{subsection.3.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Pipe options}{2}{subsection.3.2}\protected@file@percent }
+\citation{ipcperf}
+\citation{ipcperf}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}IPC options}{3}{subsection.3.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Dual Pipes}{3}{subsection.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}When to apply Kmap\xspace  }{3}{subsection.3.4}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Kmap Design}}{3}{figure.4}\protected@file@percent }
 \newlabel{fig:closeup}{{4}{3}{Kmap Design}{figure.4}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}When to apply Kmap\xspace  }{3}{subsection.3.4}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {4}Prototype}{3}{section.4}\protected@file@percent }
 \newlabel{sec:prototype}{{4}{3}{Prototype}{section.4}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Kmap\xspace  Buffer}{3}{subsection.4.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Concurrency Challenges}{3}{subsection.4.2}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Libc Functions Preloaded (Tiny C Webserver)}}{3}{table.1}\protected@file@percent }
-\newlabel{t:libraries_cserver}{{1}{3}{Libc Functions Preloaded (Tiny C Webserver)}{table.1}{}}
 \citation{flask}
 \citation{tiny}
 \citation{tiny}
-\citation{netkernel}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Libc Functions Preloaded (Tiny C Webserver)}}{4}{table.1}\protected@file@percent }
+\newlabel{t:libraries_cserver}{{1}{4}{Libc Functions Preloaded (Tiny C Webserver)}{table.1}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Kmap\xspace  Network Calls}{4}{subsection.4.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Initialization}{4}{subsection.4.4}\protected@file@percent }
 \newlabel{subsec:initialization}{{4.4}{4}{Initialization}{subsection.4.4}{}}
@@ -63,27 +64,33 @@
 \newlabel{sec:evaluation}{{5}{4}{Evaluation}{section.5}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.1}General Performance}{4}{subsection.5.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Buffer Size}{4}{subsection.5.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Busy Server}{4}{subsection.5.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {6}Related Work}{4}{section.6}\protected@file@percent }
+\citation{netkernel}
 \citation{slimos}
-\bibstyle{acm}
-\bibdata{paper}
-\bibcite{envoy_perf}{1}
-\bibcite{ldtrick}{2}
-\bibcite{envoy}{3}
-\bibcite{flask}{4}
-\bibcite{ipcperf}{5}
-\bibcite{istio}{6}
+\citation{graft}
+\citation{clarmor}
 \@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Time to Transfer}}{5}{figure.6}\protected@file@percent }
 \newlabel{fig:results}{{6}{5}{Time to Transfer}{figure.6}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Comparing Kmap\xspace  Buffer Sizes}}{5}{figure.7}\protected@file@percent }
 \newlabel{fig:buf}{{7}{5}{Comparing \sysname Buffer Sizes}{figure.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Busy Server}{5}{subsection.5.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Related Work}{5}{section.6}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {7}Discussion}{5}{section.7}\protected@file@percent }
 \newlabel{sec:discussion}{{7}{5}{Discussion}{section.7}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {7.1}Optimizing Kmap\xspace  }{5}{subsection.7.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Next Steps and Lessons}{5}{subsection.7.2}\protected@file@percent }
+\bibstyle{acm}
+\bibdata{paper}
+\bibcite{envoy_perf}{1}
+\bibcite{envoy}{2}
+\bibcite{flask}{3}
+\bibcite{ipcperf}{4}
+\bibcite{istio}{5}
+\bibcite{kmap_source}{6}
 \bibcite{ldpreload}{7}
-\bibcite{netkernel}{8}
-\bibcite{tiny}{9}
-\bibcite{envoy_image}{10}
-\bibcite{slimos}{11}
+\bibcite{ldtrick}{8}
+\bibcite{clarmor}{9}
+\bibcite{graft}{10}
+\bibcite{netkernel}{11}
+\bibcite{tiny}{12}
+\bibcite{envoy_image}{13}
+\bibcite{slimos}{14}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Next Steps and Lessons}{6}{subsection.7.2}\protected@file@percent }

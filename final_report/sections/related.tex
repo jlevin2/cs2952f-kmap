@@ -1,4 +1,7 @@
 \section{Related Work}
+In this section, we highlight work with a similar goal or method to \sysname.
+In this, we hope to show that \sysname has taken inspiration from existing network tools and is rooted in a growing body of work.
+
 \textbf{NetKernel:~\cite{netkernel}}
 This work focuses on moving optimizing the network stack by moving it out of the kernel.
 The impetus was in the VM-age, riping the kernel out of the VM itself provides more control and optimization for users.
@@ -13,3 +16,14 @@ SlimOS addresses performance challenges within the container network stack.
 Similar to \sysname, they attempt to avoid traveling the virtualized network stack and directly preceding through the host network interface.
 They work works at a lower abstraction level than \sysname but employs a similar principal.
 SlimOS dynamically links its user-space library onto of containers using LD\_PRELOAD on unmodified application binaries.
+
+
+\textbf{Grafting Sockets:~\cite{graft}}
+This work expands a new socket option AF\_GRAFT to optimize container networking.
+They expanded POSIX sockets to include the new option, allowing applications to build directly with it.
+Additionally, they use LD\_PRELOAD to load the AF\_GRAFT library without any application modification.
+
+
+\textbf{clARMOR:~\cite{clarmor}}
+clARMOR uses LD\_PRELOAD to load a buffer-overflow detection library.
+The tools highlights the applicability and widespread use of LD\_PRELOAD for injecting additional logic into system class without requiring application modification.

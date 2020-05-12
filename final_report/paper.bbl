@@ -4,10 +4,6 @@
 Best practices: Benchmarking service mesh performance.
 \newblock \url{https://istio.io/blog/2019/performance-best-practices/}.
 
-\bibitem{ldtrick}
-Correct usage of ld\_preload for hooking libc functions.
-\newblock \url{https://tbrindus.ca/correct-ld-preload-hooking-libc/}.
-
 \bibitem{envoy}
 Envoy proxy - home.
 \newblock \url{https://www.envoyproxy.io/}.
@@ -25,9 +21,31 @@ Ipc performance.
 Istio.
 \newblock \url{https://istio.io/}.
 
+\bibitem{kmap_source}
+Kmap.
+\newblock \url{https://github.com/jlevin2/cs2952f-kmap}.
+
 \bibitem{ldpreload}
 Ld\_preload documentation.
 \newblock \url{http://man7.org/linux/man-pages/man8/ld.so.8.html}.
+
+\bibitem{ldtrick}
+{\sc Brindus, T.}
+\newblock Correct usage of ld\_preload for hooking libc functions.
+\newblock \url{https://tbrindus.ca/correct-ld-preload-hooking-libc/}.
+
+\bibitem{clarmor}
+{\sc Erb, C., and Greathouse, J.~L.}
+\newblock Clarmor: A dynamic buffer overflow detector for opencl kernels.
+\newblock In {\em Proceedings of the International Workshop on OpenCL\/} (New
+  York, NY, USA, 2018), IWOCL ’18, Association for Computing Machinery.
+
+\bibitem{graft}
+{\sc Nakamura, R., Sekiya, Y., and Tazaki, H.}
+\newblock Grafting sockets for fast container networking.
+\newblock In {\em Proceedings of the 2018 Symposium on Architectures for
+  Networking and Communications Systems\/} (New York, NY, USA, 2018), ANCS
+  ’18, Association for Computing Machinery, p.~15–27.
 
 \bibitem{netkernel}
 {\sc Niu, Z., Xu, H., Han, D., Cheng, P., Xiong, Y., Chen, G., and Winstein,
