@@ -1,0 +1,8 @@
+\section{Conclusion}
+\label{sec:conclusion}
+In this paper, we present \sysname, an optimization library that intercept network syscalls to replace the kernel network stack with shared memory to allow for better performance. 
+We use the so-called LD\_PRELOAD trick to intercept the library calls for both Envoy and local service.
+Without network load, \sysname does not provide results with significant performance benefits; however, under some TCP load, \sysname managed to surpass the system performance.
+
+
+Our work, including the library itself,  is publicly available at \href{https://github.com/jlevin2/cs2952f-kmap}{https://github.com/jlevin2/cs2952f-kmap}.
