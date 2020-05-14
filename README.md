@@ -1,5 +1,5 @@
 # cs2952f-kmap
-Zero Copy Networking for Envoy Sidecars
+Optimizing Envoy networking by using LD_PRELOAD to use shared memory instead of the local network stack.
 
 ## Research + Resources
 https://drive.google.com/file/d/1n-h235tm8DnL_RqxTTA95rgGtrLkBsyr/view
